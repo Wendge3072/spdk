@@ -241,7 +241,7 @@ move_get_band_cb(struct ftl_band *band, void *cntx, bool status)
 	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
 	tsc = tsc - reloc->search_band_time;
 
-	FTL_NOTICELOG(reloc->dev, "Time taken to get band for reloc %zu, poller ite: %zu \n", tsc, reloc->dev->poller_ite_cnt);
+	FTL_NOTICELOG(reloc->dev, "Time taken to get band for reloc %.2f ms, poller ite: %zu \n", 1000.0 * tsc / (double)spdk_get_ticks_hz(), reloc->dev->poller_ite_cnt);
 	reloc->band_waiting = false;
 }
 
