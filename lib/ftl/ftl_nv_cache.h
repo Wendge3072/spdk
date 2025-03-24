@@ -122,8 +122,6 @@ struct ftl_nv_cache_chunk {
 
 	uint64_t comp_start_num;
 
-	uint64_t compaction_read_tsc;
-
 	/* For writing metadata */
 	struct ftl_md_io_entry_ctx md_persist_entry_ctx;
 };

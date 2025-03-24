@@ -509,8 +509,8 @@ compaction_stats_update(struct ftl_nv_cache_chunk *chunk)
 	struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(chunk->nv_cache, struct spdk_ftl_dev, nv_cache);
 	FTL_NOTICELOG(dev, "Free Chunk Ratio: %.2f%%, and Free Band Num: %zu\n", (double)nv_cache->chunk_free_count / nv_cache->chunk_count * 100, dev->num_free);
 	FTL_NOTICELOG(dev, "Compaction ended id: %zu, poller ite: %zu, started %zu times\n", get_chunk_idx(chunk), dev->poller_ite_cnt, chunk->comp_start_num);
-	FTL_NOTICELOG(dev, "Compaction bandwidth: %.2f MB/s and length: %.2f ms\n", (*ptr) * spdk_get_ticks_hz() / (1024 * 1024), (double)chunk->compaction_length_tsc / spdk_get_ticks_hz() * 1000);
-	FTL_NOTICELOG(dev, "Compaction Skip BW: %.2f MB/s\n", chunk->md->blocks_comp_skip * FTL_BLOCK_SIZE / (double)chunk->compaction_length_tsc * spdk_get_ticks_hz() / (1024 * 1024));
+	FTL_NOTICELOG(dev, "Compaction bandwidth: %.2f MiB/s and length: %.2f ms\n", (*ptr) * spdk_get_ticks_hz() / (1024 * 1024), (double)chunk->compaction_length_tsc / spdk_get_ticks_hz() * 1000);
+	FTL_NOTICELOG(dev, "Compaction Skip BW: %.2f MiB/s\n", chunk->md->blocks_comp_skip * FTL_BLOCK_SIZE / (double)chunk->compaction_length_tsc * spdk_get_ticks_hz() / (1024 * 1024));
 	chunk->comp_start_num = 0;
 	chunk->compaction_length_tsc = 0;
 
@@ -664,15 +664,13 @@ compaction_process_read_cb(struct spdk_bdev_io *bdev_io,
 		return;
 	}
 	struct ftl_nv_cache_chunk *chunk = compactor->rd->owner.priv;
-	chunk->md->read_done_ptr += compactor->rd->iter.count;
-	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
-	if(spdk_unlikely(tsc - chunk->compaction_read_tsc > 10*spdk_get_ticks_hz())){
+	if(spdk_unlikely(chunk->md->read_done_ptr == 0)){
 		FTL_NOTICELOG(dev, "Compaction 1stRd id: %zu, poller ite: %zu\n", get_chunk_idx(chunk), dev->poller_ite_cnt);
 	}
+	chunk->md->read_done_ptr += compactor->rd->iter.count;
 	if(chunk_blocks_to_read_done(chunk) == 0){
 		FTL_NOTICELOG(dev, "Compaction lastRd id: %zu, poller ite: %zu\n", get_chunk_idx(chunk), dev->poller_ite_cnt);
 	}
-	chunk->compaction_read_tsc = tsc;
 	compaction_process_pin_lba(compactor);
 }
 
@@ -819,13 +817,10 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 		ftl_writer_queue_rq(&dev->writer_user, compactor->wr);
 		return;
 	}
-	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
-	if(tsc - chunk->compaction_start_tsc > spdk_get_ticks_hz()){
+	if(chunk->md->read_pointer == 0){
 		FTL_NOTICELOG(dev, "Compaction start id: %zu, poller ite: %zu\n", get_chunk_idx(chunk), dev->poller_ite_cnt);
 	}
-	else{
-		chunk->comp_start_num++;
-	}
+	chunk->comp_start_num++;
 	chunk->compaction_start_tsc = spdk_thread_get_last_tsc(spdk_get_thread());
 
 	/*

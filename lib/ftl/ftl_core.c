@@ -677,7 +677,7 @@ ftl_process_io_queue(struct spdk_ftl_dev *dev)
 		ftl_process_io_channel(dev, ioch);
 	}
 }
-void ftl_print_free_bands(struct spdk_ftl_dev *dev);
+void ftl_print_per_sec(struct spdk_ftl_dev *dev);
 
 // core_poller is here
 int
@@ -697,7 +697,7 @@ ftl_core_poller(void *ctx)
 	ftl_reloc(dev->reloc);
 	ftl_nv_cache_process(dev);
 	ftl_l2p_process(dev);
-	ftl_print_free_bands(dev);
+	ftl_print_per_sec(dev);
 
 	if (io_activity_total_old != dev->stats.io_activity_total) {
 		return SPDK_POLLER_BUSY;
@@ -706,7 +706,7 @@ ftl_core_poller(void *ctx)
 	return SPDK_POLLER_IDLE;
 }
 
-void ftl_print_free_bands(struct spdk_ftl_dev *dev){
+void ftl_print_per_sec(struct spdk_ftl_dev *dev){
 	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
 	dev->poller_ite_cnt++;
 	if(tsc - dev->last_print_tsc > spdk_get_ticks_hz()){
