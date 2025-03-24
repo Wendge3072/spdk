@@ -79,6 +79,8 @@ struct ftl_nv_cache_chunk_md {
 	/* Number of compacted (both valid and invalid) blocks */
 	uint32_t blocks_compacted;
 
+	uint32_t blocks_comp_skip;
+
 	/* Chunk state */
 	enum ftl_chunk_state state;
 

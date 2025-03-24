@@ -22,7 +22,7 @@ write_rq_end(struct spdk_bdev_io *bdev_io, bool success, void *arg)
 
 	rq->success = success;
 	if (spdk_likely(success)){
-		if (rq->compaction){
+		if (rq->owner.compaction){
 			dev->compaction_bw += rq->num_blocks;
 		}
 		else{
@@ -69,11 +69,6 @@ ftl_band_rq_write(struct ftl_band *band, struct ftl_rq *rq, enum ftl_band_type t
 	rq->success = false;
 	rq->io.band = band;
 	rq->io.addr = band->md->iter.addr;
-	if (type == FTL_BAND_TYPE_COMPACTION){
-		rq->compaction = true;
-	} else {
-		rq->compaction = false;
-	}
 
 	ftl_band_rq_bdev_write(rq);
 

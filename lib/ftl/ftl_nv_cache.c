@@ -510,6 +510,7 @@ compaction_stats_update(struct ftl_nv_cache_chunk *chunk)
 	FTL_NOTICELOG(dev, "Free Chunk Ratio: %.2f%%, and Free Band Num: %zu\n", (double)nv_cache->chunk_free_count / nv_cache->chunk_count * 100, dev->num_free);
 	FTL_NOTICELOG(dev, "Compaction ended id: %zu, poller ite: %zu, started %zu times\n", get_chunk_idx(chunk), dev->poller_ite_cnt, chunk->comp_start_num);
 	FTL_NOTICELOG(dev, "Compaction bandwidth: %.2f MB/s and length: %.2f ms\n", (*ptr) * spdk_get_ticks_hz() / (1024 * 1024), (double)chunk->compaction_length_tsc / spdk_get_ticks_hz() * 1000);
+	FTL_NOTICELOG(dev, "Compaction Skip BW: %.2f MB/s\n", chunk->md->blocks_comp_skip * FTL_BLOCK_SIZE / (double)chunk->compaction_length_tsc * spdk_get_ticks_hz() / (1024 * 1024));
 	chunk->comp_start_num = 0;
 	chunk->compaction_length_tsc = 0;
 
@@ -845,6 +846,7 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 		chunk->md->read_pointer += offset;
 		chunk->md->read_done_ptr += offset;
 		chunk_compaction_advance(chunk, offset);
+		chunk->md->blocks_comp_skip += offset;
 		to_read -= offset;
 		if (!to_read) {
 			compactor_deactivate(compactor);
@@ -971,6 +973,7 @@ compaction_process_finish_read(struct ftl_nv_cache_compactor *compactor)
 			cache_addr++;
 			rd->iter.idx++;
 			chunk_compaction_advance(chunk, 1);
+			chunk->md->blocks_comp_skip++;
 			continue;
 		}
 
@@ -995,6 +998,7 @@ compaction_process_finish_read(struct ftl_nv_cache_compactor *compactor)
 		} else {
 			/* This address already invalidated, just omit this block */
 			chunk_compaction_advance(chunk, 1);
+			chunk->md->blocks_comp_skip++;
 			ftl_l2p_unpin(dev, md->nv_cache.lba, 1);
 		}
 
@@ -1468,6 +1472,7 @@ ftl_nv_cache_save_state(struct ftl_nv_cache *nv_cache)
 			 * load
 			 */
 			chunk->md->read_pointer = chunk->md->blocks_compacted = 0;
+			chunk->md->blocks_comp_skip = 0;
 			chunk->md->read_done_ptr = 0;
 		} else if (chunk->md->blocks_written == nv_cache->chunk_blocks) {
 			/* Full chunk */

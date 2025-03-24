@@ -244,8 +244,6 @@ struct ftl_rq {
 
 		struct spdk_bdev_io_wait_entry bdev_io_wait;
 	} io;
-	
-	bool compaction;
 
 	/* For writing P2L metadata */
 	struct ftl_md_io_entry_ctx md_persist_entry_ctx;
