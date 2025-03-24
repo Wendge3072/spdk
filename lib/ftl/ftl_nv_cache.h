@@ -88,7 +88,7 @@ struct ftl_nv_cache_chunk_md {
 	uint32_t p2l_map_checksum;
 
 	/* Reserved */
-	uint8_t reserved[4048];
+	uint8_t reserved[4044];
 } __attribute__((packed));
 
 #define FTL_NV_CACHE_CHUNK_MD_SIZE sizeof(struct ftl_nv_cache_chunk_md)
