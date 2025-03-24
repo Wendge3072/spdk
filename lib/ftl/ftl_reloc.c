@@ -64,6 +64,8 @@ struct ftl_reloc {
 	/* Queue of free move objects */
 	struct ftl_reloc_move *move_buffer;
 
+	uint64_t search_band_time;
+
 	/* Array of movers queue for each state */
 	TAILQ_HEAD(, ftl_reloc_move) move_queue[FTL_RELOC_STATE_MAX];
 
@@ -236,6 +238,10 @@ move_get_band_cb(struct ftl_band *band, void *cntx, bool status)
 		reloc->band = band;
 		ftl_band_iter_init(band);
 	}
+	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
+	tsc = tsc - reloc->search_band_time;
+
+	FTL_NOTICELOG(reloc->dev, "Time taken to get band for reloc %zu, poller ite: %zu \n", tsc, reloc->dev->poller_ite_cnt);
 	reloc->band_waiting = false;
 }
 
@@ -253,6 +259,8 @@ move_grab_new_band(struct ftl_reloc *reloc)
 		}
 
 		reloc->band_waiting = true;
+		uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
+		reloc->search_band_time = tsc;
 		ftl_band_get_next_gc(reloc->dev, move_get_band_cb, reloc);
 	}
 }

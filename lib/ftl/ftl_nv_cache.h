@@ -74,6 +74,7 @@ struct ftl_nv_cache_chunk_md {
 
 	/* Next block to be compacted */
 	uint32_t read_pointer;
+	uint32_t read_done_ptr;
 
 	/* Number of compacted (both valid and invalid) blocks */
 	uint32_t blocks_compacted;
@@ -85,7 +86,7 @@ struct ftl_nv_cache_chunk_md {
 	uint32_t p2l_map_checksum;
 
 	/* Reserved */
-	uint8_t reserved[4052];
+	uint8_t reserved[4048];
 } __attribute__((packed));
 
 #define FTL_NV_CACHE_CHUNK_MD_SIZE sizeof(struct ftl_nv_cache_chunk_md)
@@ -116,6 +117,10 @@ struct ftl_nv_cache_chunk {
 
 	/* Compaction duration */
 	uint64_t compaction_length_tsc;
+
+	uint64_t comp_start_num;
+
+	uint64_t compaction_read_tsc;
 
 	/* For writing metadata */
 	struct ftl_md_io_entry_ctx md_persist_entry_ctx;
@@ -217,6 +222,7 @@ struct ftl_nv_cache {
 		uint64_t blocks_submitted;
 		uint64_t blocks_submitted_limit;
 	} throttle;
+	uint64_t n_submit_blks;
 };
 
 int ftl_nv_cache_init(struct spdk_ftl_dev *dev);

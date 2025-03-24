@@ -21,6 +21,14 @@ write_rq_end(struct spdk_bdev_io *bdev_io, bool success, void *arg)
 				    bdev_io);
 
 	rq->success = success;
+	if (spdk_likely(success)){
+		if (rq->compaction){
+			dev->compaction_bw += rq->num_blocks;
+		}
+		else{
+			dev->gc_bw += rq->num_blocks;
+		}
+	}
 
 	ftl_p2l_ckpt_issue(rq);
 
@@ -54,13 +62,18 @@ ftl_band_rq_bdev_write(void *_rq)
 }
 
 void
-ftl_band_rq_write(struct ftl_band *band, struct ftl_rq *rq)
+ftl_band_rq_write(struct ftl_band *band, struct ftl_rq *rq, enum ftl_band_type type)
 {
 	struct spdk_ftl_dev *dev = band->dev;
 
 	rq->success = false;
 	rq->io.band = band;
 	rq->io.addr = band->md->iter.addr;
+	if (type == FTL_BAND_TYPE_COMPACTION){
+		rq->compaction = true;
+	} else {
+		rq->compaction = false;
+	}
 
 	ftl_band_rq_bdev_write(rq);
 
@@ -383,7 +396,8 @@ band_free_cb(int status, void *ctx)
 	}
 
 	ftl_band_release_p2l_map(band);
-	FTL_DEBUGLOG(band->dev, "Band is going to free state. Band id: %u\n", band->id);
+	// FTL_DEBUGLOG(band->dev, "Band is going to free state. Band id: %u\n", band->id);
+	FTL_NOTICELOG(band->dev, "GC end. Band id: %u going to free state, poller ite: %zu\n", band->id, band->dev->poller_ite_cnt);
 	ftl_band_set_state(band, FTL_BAND_STATE_FREE);
 	assert(0 == band->p2l_map.ref_cnt);
 }

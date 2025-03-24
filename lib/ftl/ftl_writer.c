@@ -158,7 +158,7 @@ ftl_writer_run(struct ftl_writer *writer)
 		/* Finally we can write to band */
 		rq = TAILQ_FIRST(&writer->rq_queue);
 		TAILQ_REMOVE(&writer->rq_queue, rq, qentry);
-		ftl_band_rq_write(writer->band, rq);
+		ftl_band_rq_write(writer->band, rq, writer->writer_type);
 	}
 }
 

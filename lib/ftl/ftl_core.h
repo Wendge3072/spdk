@@ -185,6 +185,10 @@ struct spdk_ftl_dev {
 		/* In use regions */
 		TAILQ_HEAD(, ftl_p2l_ckpt)	inuse;
 	} p2l_ckpt;
+	uint64_t last_print_tsc;
+	uint64_t poller_ite_cnt;
+	uint64_t compaction_bw;
+	uint64_t gc_bw;
 };
 
 void ftl_apply_limits(struct spdk_ftl_dev *dev);

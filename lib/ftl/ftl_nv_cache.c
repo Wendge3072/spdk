@@ -16,6 +16,8 @@
 #include "utils/ftl_addr_utils.h"
 #include "mngt/ftl_mngt.h"
 
+static uint64_t chunk_blocks_to_read(struct ftl_nv_cache_chunk *chunk);
+static uint64_t chunk_blocks_to_read_done(struct ftl_nv_cache_chunk *chunk);
 static inline uint64_t nvc_data_blocks(struct ftl_nv_cache *nv_cache) __attribute__((unused));
 static struct ftl_nv_cache_compactor *compactor_alloc(struct spdk_ftl_dev *dev);
 static void compactor_free(struct spdk_ftl_dev *dev, struct ftl_nv_cache_compactor *compactor);
@@ -504,6 +506,11 @@ compaction_stats_update(struct ftl_nv_cache_chunk *chunk)
 	}
 
 	*ptr = (double)chunk->md->blocks_compacted * FTL_BLOCK_SIZE / chunk->compaction_length_tsc;
+	struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(chunk->nv_cache, struct spdk_ftl_dev, nv_cache);
+	FTL_NOTICELOG(dev, "Free Chunk Ratio: %.2f%%, and Free Band Num: %zu\n", (double)nv_cache->chunk_free_count / nv_cache->chunk_count * 100, dev->num_free);
+	FTL_NOTICELOG(dev, "Compaction ended id: %zu, poller ite: %zu, started %zu times\n", get_chunk_idx(chunk), dev->poller_ite_cnt, chunk->comp_start_num);
+	FTL_NOTICELOG(dev, "Compaction bandwidth: %.2f MB/s and length: %.2f ms\n", (*ptr) * spdk_get_ticks_hz() / (1024 * 1024), (double)chunk->compaction_length_tsc / spdk_get_ticks_hz() * 1000);
+	chunk->comp_start_num = 0;
 	chunk->compaction_length_tsc = 0;
 
 	compaction_bw->sum += *ptr;
@@ -655,7 +662,16 @@ compaction_process_read_cb(struct spdk_bdev_io *bdev_io,
 		spdk_thread_send_msg(spdk_get_thread(), compaction_retry_read, compactor);
 		return;
 	}
-
+	struct ftl_nv_cache_chunk *chunk = compactor->rd->owner.priv;
+	chunk->md->read_done_ptr += compactor->rd->iter.count;
+	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
+	if(spdk_unlikely(tsc - chunk->compaction_read_tsc > 10*spdk_get_ticks_hz())){
+		FTL_NOTICELOG(dev, "Compaction 1stRd id: %zu, poller ite: %zu\n", get_chunk_idx(chunk), dev->poller_ite_cnt);
+	}
+	if(chunk_blocks_to_read_done(chunk) == 0){
+		FTL_NOTICELOG(dev, "Compaction lastRd id: %zu, poller ite: %zu\n", get_chunk_idx(chunk), dev->poller_ite_cnt);
+	}
+	chunk->compaction_read_tsc = tsc;
 	compaction_process_pin_lba(compactor);
 }
 
@@ -712,6 +728,21 @@ chunk_blocks_to_read(struct ftl_nv_cache_chunk *chunk)
 
 	assert(blocks_written >= chunk->md->read_pointer);
 	blocks_to_read = blocks_written - chunk->md->read_pointer;
+
+	return blocks_to_read;
+}
+
+static uint64_t
+chunk_blocks_to_read_done(struct ftl_nv_cache_chunk *chunk)
+{
+	uint64_t blocks_written;
+	uint64_t blocks_to_read;
+
+	assert(chunk->md->blocks_written >= chunk->md->blocks_skipped);
+	blocks_written = chunk_user_blocks_written(chunk);
+
+	assert(blocks_written >= chunk->md->read_done_ptr);
+	blocks_to_read = blocks_written - chunk->md->read_done_ptr;
 
 	return blocks_to_read;
 }
@@ -787,7 +818,13 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 		ftl_writer_queue_rq(&dev->writer_user, compactor->wr);
 		return;
 	}
-
+	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
+	if(tsc - chunk->compaction_start_tsc > spdk_get_ticks_hz()){
+		FTL_NOTICELOG(dev, "Compaction start id: %zu, poller ite: %zu\n", get_chunk_idx(chunk), dev->poller_ite_cnt);
+	}
+	else{
+		chunk->comp_start_num++;
+	}
 	chunk->compaction_start_tsc = spdk_thread_get_last_tsc(spdk_get_thread());
 
 	/*
@@ -806,6 +843,7 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 
 	if (offset) {
 		chunk->md->read_pointer += offset;
+		chunk->md->read_done_ptr += offset;
 		chunk_compaction_advance(chunk, offset);
 		to_read -= offset;
 		if (!to_read) {
@@ -840,6 +878,9 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 
 	/* Move read pointer in the chunk */
 	chunk->md->read_pointer += to_read;
+	if(chunk_blocks_to_read(chunk) == 0){
+		FTL_NOTICELOG(dev, "Compaction lastRd LCH id: %zu, poller ite: %zu\n", get_chunk_idx(chunk), dev->poller_ite_cnt);
+	}
 }
 
 static void
@@ -1064,6 +1105,7 @@ ftl_nv_cache_submit_cb(struct spdk_bdev_io *bdev_io, bool success, void *cb_arg)
 		io->status = -EIO;
 		ftl_nv_cache_submit_cb_done(io);
 	} else {
+		io->dev->nv_cache.n_submit_blks += io->num_blocks;
 		ftl_nv_cache_l2p_update(io);
 	}
 }
@@ -1426,6 +1468,7 @@ ftl_nv_cache_save_state(struct ftl_nv_cache *nv_cache)
 			 * load
 			 */
 			chunk->md->read_pointer = chunk->md->blocks_compacted = 0;
+			chunk->md->read_done_ptr = 0;
 		} else if (chunk->md->blocks_written == nv_cache->chunk_blocks) {
 			/* Full chunk */
 		} else if (0 == chunk->md->blocks_written) {

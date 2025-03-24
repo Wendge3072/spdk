@@ -181,7 +181,7 @@ void ftl_bands_load_state(struct spdk_ftl_dev *dev);
 void ftl_band_open(struct ftl_band *band, enum ftl_band_type type);
 void ftl_band_close(struct ftl_band *band);
 void ftl_band_free(struct ftl_band *band);
-void ftl_band_rq_write(struct ftl_band *band, struct ftl_rq *rq);
+void ftl_band_rq_write(struct ftl_band *band, struct ftl_rq *rq, enum ftl_band_type type);
 void ftl_band_rq_read(struct ftl_band *band, struct ftl_rq *rq);
 void ftl_band_basic_rq_write(struct ftl_band *band, struct ftl_basic_rq *brq);
 void ftl_band_basic_rq_read(struct ftl_band *band, struct ftl_basic_rq *brq);

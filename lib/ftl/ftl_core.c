@@ -293,6 +293,7 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev)
 	size_t limit = ftl_get_limit(dev, SPDK_FTL_LIMIT_START);
 
 	if (dev->num_free <= limit) {
+		FTL_NOTICELOG(dev, "Free Band N: %zu, need GC, poller ite: %zu\n", dev->num_free, dev->poller_ite_cnt);
 		return true;
 	}
 
@@ -676,7 +677,9 @@ ftl_process_io_queue(struct spdk_ftl_dev *dev)
 		ftl_process_io_channel(dev, ioch);
 	}
 }
+void ftl_print_free_bands(struct spdk_ftl_dev *dev);
 
+// core_poller is here
 int
 ftl_core_poller(void *ctx)
 {
@@ -694,12 +697,29 @@ ftl_core_poller(void *ctx)
 	ftl_reloc(dev->reloc);
 	ftl_nv_cache_process(dev);
 	ftl_l2p_process(dev);
+	ftl_print_free_bands(dev);
 
 	if (io_activity_total_old != dev->stats.io_activity_total) {
 		return SPDK_POLLER_BUSY;
 	}
 
 	return SPDK_POLLER_IDLE;
+}
+
+void ftl_print_free_bands(struct spdk_ftl_dev *dev){
+	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
+	dev->poller_ite_cnt++;
+	if(tsc - dev->last_print_tsc > spdk_get_ticks_hz()){
+		dev->last_print_tsc = tsc;
+		FTL_NOTICELOG(dev, "Poller Free Bands: %zu, poller s: %zu\n", dev->num_free, dev->poller_ite_cnt);
+		FTL_NOTICELOG(dev, "User writing BandWidth: %.2f MiB/s\n", (double)dev->nv_cache.n_submit_blks * FTL_BLOCK_SIZE / (1024*1024));
+		FTL_NOTICELOG(dev, "Compaction BandWidth: %.2f MiB/s\n", (double)dev->compaction_bw * FTL_BLOCK_SIZE / (1024*1024));
+		FTL_NOTICELOG(dev, "GC BandWidth: %.2f MiB/s\n", (double)dev->gc_bw * FTL_BLOCK_SIZE / (1024*1024));
+		dev->nv_cache.n_submit_blks = 0;
+		dev->poller_ite_cnt = 0;
+		dev->compaction_bw = 0;
+		dev->gc_bw = 0;
+	}
 }
 
 struct ftl_band *
@@ -710,6 +730,7 @@ ftl_band_get_next_free(struct spdk_ftl_dev *dev)
 	if (!TAILQ_EMPTY(&dev->free_bands)) {
 		band = TAILQ_FIRST(&dev->free_bands);
 		TAILQ_REMOVE(&dev->free_bands, band, queue_entry);
+		FTL_NOTICELOG(dev, "Band To Use, id %u, free band: %zu, poller ite: %zu\n", band->id, dev->num_free, dev->poller_ite_cnt);
 		ftl_band_erase(band);
 	}
 

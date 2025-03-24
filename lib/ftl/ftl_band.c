@@ -533,7 +533,8 @@ band_start_gc(struct spdk_ftl_dev *dev, struct ftl_band *band)
 	TAILQ_REMOVE(&dev->shut_bands, band, queue_entry);
 	band->reloc = true;
 
-	FTL_DEBUGLOG(dev, "Band to GC, id %u\n", band->id);
+	// FTL_DEBUGLOG(dev, "Band to GC, id %u\n", band->id);
+	FTL_NOTICELOG(dev, "Band id %u, going to GC, poller ite: %zu\n", band->id, dev->poller_ite_cnt);
 }
 
 static struct ftl_band *
@@ -599,7 +600,7 @@ ftl_band_search_next_to_reloc(struct spdk_ftl_dev *dev)
 		band_start_gc(dev, band);
 		return band;
 	}
-
+	uint64_t tsc_s = spdk_thread_get_last_tsc(spdk_get_thread());
 	for (i = 0; i < band_count; i += phys_count) {
 		band = &dev->bands[i];
 
@@ -616,9 +617,11 @@ ftl_band_search_next_to_reloc(struct spdk_ftl_dev *dev)
 			}
 		}
 	}
-
+	uint64_t tsc_e = spdk_thread_get_last_tsc(spdk_get_thread());
+	tsc_e -= tsc_s;
 	if (FTL_BAND_PHYS_ID_INVALID != phys_id) {
-		FTL_DEBUGLOG(dev, "Band physical id %"PRIu64" to GC\n", phys_id);
+		// FTL_DEBUGLOG(dev, "Band physical id %"PRIu64" to GC\n", phys_id);
+		FTL_NOTICELOG(dev, "Band physical id %"PRIu64" to GC, and GC band search time %.2f us, poller ite: %zu\n", phys_id, (double)(tsc_e / spdk_get_ticks_hz()), dev->poller_ite_cnt);
 		dev->sb_shm->gc_info.is_valid = 0;
 		dev->sb_shm->gc_info.current_band_id = phys_id * phys_count;
 		dev->sb_shm->gc_info.band_phys_id = phys_id;
