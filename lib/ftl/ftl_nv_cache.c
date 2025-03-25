@@ -271,6 +271,8 @@ ftl_nv_cache_get_wr_buffer(struct ftl_nv_cache *nv_cache, struct ftl_io *io)
 			if (chunk && chunk->md->state == FTL_CHUNK_STATE_OPEN) {
 				TAILQ_REMOVE(&nv_cache->chunk_open_list, chunk, entry);
 				nv_cache->chunk_current = chunk;
+				struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(nv_cache, struct spdk_ftl_dev, nv_cache);
+				FTL_NOTICELOG(dev, "Chunk %lu going to Use.\n", get_chunk_idx(chunk));
 			} else {
 				break;
 			}
