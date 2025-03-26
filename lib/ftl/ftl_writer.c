@@ -73,11 +73,10 @@ close_full_bands(struct ftl_writer *writer)
 static bool
 is_active(struct ftl_writer *writer)
 {
-	bool active = false;
+	bool active = true;
 	if (writer->dev->limit < writer->limit) {
 		active = false;
 	}
-	active = true;
 	if (!active){ // 停机
 		uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
 		if (writer->writer_halt){
