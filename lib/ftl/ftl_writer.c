@@ -99,7 +99,7 @@ get_band(struct ftl_writer *writer)
 				ftl_abort();
 			}
 		}
-
+		// 上一个writer band已经Full，虽然还属于numbands，但是band=Null
 		if (writer->num_bands >= FTL_LAYOUT_REGION_TYPE_P2L_COUNT / 2) {
 			/* Maximum number of opened band exceed (we split this
 			 * value between and compaction and GC writer
@@ -107,7 +107,7 @@ get_band(struct ftl_writer *writer)
 			return NULL;
 		}
 
-		writer->band = ftl_band_get_next_free(writer->dev);
+		writer->band = ftl_band_get_next_free(writer->dev, writer->writer_type);
 		if (writer->band) {
 			writer->num_bands++;
 			ftl_band_set_owner(writer->band,

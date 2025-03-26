@@ -203,7 +203,7 @@ struct ftl_io_channel *ftl_io_channel_get_ctx(struct spdk_io_channel *ioch);
 
 bool ftl_needs_reloc(struct spdk_ftl_dev *dev);
 
-struct ftl_band *ftl_band_get_next_free(struct spdk_ftl_dev *dev);
+struct ftl_band *ftl_band_get_next_free(struct spdk_ftl_dev *dev, enum ftl_band_type writer_type);
 
 void ftl_set_unmap_map(struct spdk_ftl_dev *dev, uint64_t lba, uint64_t num_blocks,
 		       uint64_t seq_id);

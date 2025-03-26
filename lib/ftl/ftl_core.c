@@ -711,7 +711,7 @@ void ftl_print_per_sec(struct spdk_ftl_dev *dev){
 	dev->poller_ite_cnt++;
 	if(tsc - dev->last_print_tsc > spdk_get_ticks_hz()){
 		dev->last_print_tsc = tsc;
-		FTL_NOTICELOG(dev, "Poller Free Bands: %zu, poller s: %zu\n", dev->num_free, dev->poller_ite_cnt);
+		FTL_NOTICELOG(dev, "Poller Free Bands: %zu, poller cnts: %zu\n", dev->num_free, dev->poller_ite_cnt);
 		FTL_NOTICELOG(dev, "User writing BandWidth: %.2f MiB/s\n", (double)dev->nv_cache.n_submit_blks * FTL_BLOCK_SIZE / (1024*1024));
 		FTL_NOTICELOG(dev, "Compaction Writing: %.2f MiB/s\n", (double)dev->compaction_bw * FTL_BLOCK_SIZE / (1024*1024));
 		FTL_NOTICELOG(dev, "GC Writing: %.2f MiB/s\n", (double)dev->gc_bw * FTL_BLOCK_SIZE / (1024*1024));
@@ -723,14 +723,18 @@ void ftl_print_per_sec(struct spdk_ftl_dev *dev){
 }
 
 struct ftl_band *
-ftl_band_get_next_free(struct spdk_ftl_dev *dev)
+ftl_band_get_next_free(struct spdk_ftl_dev *dev, enum ftl_band_type writer_type)
 {
 	struct ftl_band *band = NULL;
 
 	if (!TAILQ_EMPTY(&dev->free_bands)) {
 		band = TAILQ_FIRST(&dev->free_bands);
 		TAILQ_REMOVE(&dev->free_bands, band, queue_entry);
-		FTL_NOTICELOG(dev, "Band To Use, id %u, free band: %zu, poller ite: %zu\n", band->id, dev->num_free, dev->poller_ite_cnt);
+		if (writer_type == FTL_BAND_TYPE_GC) {
+			FTL_NOTICELOG(dev, "Get Band To GC, id %u, free band: %zu, poller ite: %zu\n", band->id, dev->num_free, dev->poller_ite_cnt);
+		} else if (writer_type == FTL_BAND_TYPE_COMPACTION) {
+			FTL_NOTICELOG(dev, "Get Band To Comp, id %u, free band: %zu, poller ite: %zu\n", band->id, dev->num_free, dev->poller_ite_cnt);
+		}
 		ftl_band_erase(band);
 	}
 
