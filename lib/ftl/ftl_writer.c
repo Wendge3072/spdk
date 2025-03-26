@@ -73,11 +73,33 @@ close_full_bands(struct ftl_writer *writer)
 static bool
 is_active(struct ftl_writer *writer)
 {
+	bool active = false;
 	if (writer->dev->limit < writer->limit) {
-		return false;
+		active = false;
 	}
-
-	return true;
+	active = true;
+	if (!active){ // 停机
+		uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
+		if (writer->halt){
+			writer->idle_tsc += tsc - writer->start_tsc;
+			writer->start_tsc = tsc;
+		} else {
+			writer->start_tsc = tsc;
+			writer->idle_tsc = 0;
+			writer->halt = true;
+		}
+	}else {
+		if (writer->halt){
+			writer->halt = false;
+			if (writer->writer_type == FTL_BAND_TYPE_COMPACTION){
+				FTL_NOTICELOG(writer->dev, "Compaction Writer resumed, idle for %.2f ms\n",
+					(double)writer->idle_tsc / spdk_get_ticks_hz() * 1000);
+			} else {
+				FTL_NOTICELOG(writer->dev, "ERROR!!!");
+			}
+		}
+	}
+	return active;
 }
 
 static struct ftl_band *
