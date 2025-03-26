@@ -41,7 +41,8 @@ struct ftl_writer {
 
 	uint64_t start_tsc;
 	uint64_t idle_tsc;
-	bool halt;
+
+	bool writer_halt;
 };
 
 bool ftl_writer_is_halted(struct ftl_writer *writer);
