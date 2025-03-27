@@ -295,7 +295,8 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev)
 
 	// if (dev->num_free <= limit) {
 	double invalid_ratio = 0.0;
-	invalid_ratio = 1.0 - (double)(dev->valid_blocks_in_bands / dev->layout.base.total_blocks);
+	uint64_t no_free_blocks = (dev->num_bands - dev->num_free) * dev->num_blocks_in_band;
+	invalid_ratio = 1.0 - (double)(dev->valid_blocks_in_bands / no_free_blocks);
 	double free_band_ratio = (double)dev->num_free / dev->num_bands;
 	if (invalid_ratio >= 1.2 * free_band_ratio || dev->num_free <= limit) {
 		if (invalid_ratio >= 1.2 * free_band_ratio) {
