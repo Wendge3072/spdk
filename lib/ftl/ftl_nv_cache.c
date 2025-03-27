@@ -854,7 +854,7 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 		chunk_compaction_advance(chunk, offset);
 		chunk->md->blocks_comp_skip += offset;
 		to_read -= offset;
-		if (!to_read) {
+		if (!to_read) { // 没有可以读取的block，该chunk剩余部分无需compaction
 			compactor_deactivate(compactor);
 			return;
 		}

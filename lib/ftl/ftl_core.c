@@ -292,7 +292,14 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev)
 {
 	size_t limit = ftl_get_limit(dev, SPDK_FTL_LIMIT_START);
 
-	if (dev->num_free <= limit) {
+	// if (dev->num_free <= limit) {
+	double invalid_ratio = 0.0;
+	invalid_ratio = (double)ftl_bitmap_count_set_range(dev->valid_map, 0, dev->layout.base.total_blocks) / dev->layout.base.total_blocks;
+	double free_band_ratio = (double)(dev->num_free / dev->num_bands);
+	if (invalid_ratio >= 2.0 * free_band_ratio || dev->num_free <= limit) {
+		if (invalid_ratio >= 2.0 * free_band_ratio) {
+			FTL_NOTICELOG(dev, "Invalid Ratio: %.2f, and Free Band Ratio: %.2f, need GC\n", invalid_ratio, free_band_ratio);
+		}
 		FTL_NOTICELOG(dev, "Free Band N: %zu, need GC, poller ite: %zu\n", dev->num_free, dev->poller_ite_cnt);
 		return true;
 	}

@@ -108,4 +108,17 @@ uint64_t ftl_bitmap_find_first_clear(struct ftl_bitmap *bitmap, uint64_t start_b
  */
 uint64_t ftl_bitmap_count_set(struct ftl_bitmap *bitmap);
 
+/**
+ * @brief Iterates over and counts set bits in a range
+ *
+ * @param bitmap The bitmap
+ * 
+ * @param start_bit Index of the bit from which to begin counting
+ * 
+ * @param end_bit Index of the bit up to which to count
+ *
+ * @return Count of sets bits
+ */
+uint64_t ftl_bitmap_count_set_range(struct ftl_bitmap *bitmap, uint64_t start_bit, uint64_t end_bit);
+
 #endif /* FTL_BITMAP_H_ */

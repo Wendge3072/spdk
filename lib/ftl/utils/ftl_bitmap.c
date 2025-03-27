@@ -184,3 +184,28 @@ ftl_bitmap_count_set(struct ftl_bitmap *bitmap)
 
 	return count;
 }
+
+uint64_t
+ftl_bitmap_count_set_range(struct ftl_bitmap *bitmap, uint64_t start_bit, uint64_t end_bit)
+{
+	size_t start, end, i;
+	bitmap_word word;
+	uint64_t count = 0;
+	start = start_bit >> FTL_BITMAP_WORD_SHIFT;
+	end = end_bit >> FTL_BITMAP_WORD_SHIFT;
+	for (i = start; i <= end; i++) {
+		if(i == start){
+			word = bitmap->buf[i] & (~0UL << (start_bit & FTL_BITMAP_WORD_MASK));
+		}
+		else{
+			word = bitmap->buf[i];
+		}
+		count += __builtin_popcountl(word);
+		if(i == end){
+			word = bitmap->buf[i] & (~0UL << ((end_bit + 1) & FTL_BITMAP_WORD_MASK));
+			count -= __builtin_popcountl(word);
+		}
+	}
+
+	return count;
+}
