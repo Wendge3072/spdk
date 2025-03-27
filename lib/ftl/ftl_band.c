@@ -203,6 +203,7 @@ void
 ftl_band_set_addr(struct ftl_band *band, uint64_t lba, ftl_addr addr)
 {
 	band->p2l_map.num_valid++;
+	dev->valid_blocks_in_bands++;
 	ftl_bitmap_set(band->dev->valid_map, addr);
 }
 

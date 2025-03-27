@@ -155,6 +155,7 @@ ftl_invalidate_addr(struct spdk_ftl_dev *dev, ftl_addr addr)
 		assert(p2l_map->num_valid > 0);
 		ftl_bitmap_clear(dev->valid_map, addr);
 		p2l_map->num_valid--;
+		dev->valid_blocks_in_bands--;
 	}
 
 	/* Invalidate open/full band p2l_map entry to keep p2l and l2p
@@ -294,7 +295,7 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev)
 
 	// if (dev->num_free <= limit) {
 	double invalid_ratio = 0.0;
-	invalid_ratio = 1.0 - (double)ftl_bitmap_count_set_range(dev->valid_map, 0, dev->layout.base.total_blocks) / dev->layout.base.total_blocks;
+	invalid_ratio = 1.0 - (double)(dev->valid_blocks_in_bands / dev->layout.base.total_blocks);
 	double free_band_ratio = (double)(dev->num_free / dev->num_bands);
 	if (invalid_ratio >= 1.2 * free_band_ratio || dev->num_free <= limit) {
 		if (invalid_ratio >= 1.2 * free_band_ratio) {

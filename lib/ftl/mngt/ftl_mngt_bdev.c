@@ -112,6 +112,8 @@ ftl_mngt_open_base_bdev(struct spdk_ftl_dev *dev, struct ftl_mngt_process *mngt)
 	/* Save a band worth of space for metadata */
 	dev->num_bands--;
 
+	dev->valid_blocks_in_bands = 0;
+
 	ftl_mngt_next_step(mngt);
 	return;
 error:
