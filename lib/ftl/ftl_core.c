@@ -296,7 +296,7 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev)
 	// if (dev->num_free <= limit) {
 	double invalid_ratio = 0.0;
 	invalid_ratio = 1.0 - (double)(dev->valid_blocks_in_bands / dev->layout.base.total_blocks);
-	double free_band_ratio = (double)(dev->num_free / dev->num_bands);
+	double free_band_ratio = (double)dev->num_free / dev->num_bands;
 	if (invalid_ratio >= 1.2 * free_band_ratio || dev->num_free <= limit) {
 		if (invalid_ratio >= 1.2 * free_band_ratio) {
 			FTL_NOTICELOG(dev, "Invalid Ratio: %.2f, and Free Band Ratio: %.2f, need GC\n", invalid_ratio, free_band_ratio);
