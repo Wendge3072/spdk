@@ -678,7 +678,7 @@ ftl_band_initialize_free_state(struct ftl_band *band)
 {
 	/* All bands start on the shut list during startup, removing it manually here */
 	TAILQ_REMOVE(&band->dev->shut_bands, band, queue_entry);
-	dev->num_shut--;
+	band->dev->num_shut--;
 	_ftl_band_set_free(band);
 }
 
