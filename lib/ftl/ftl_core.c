@@ -155,7 +155,9 @@ ftl_invalidate_addr(struct spdk_ftl_dev *dev, ftl_addr addr)
 		assert(p2l_map->num_valid > 0);
 		ftl_bitmap_clear(dev->valid_map, addr);
 		p2l_map->num_valid--;
-		dev->valid_blocks_in_bands--;
+		if(band->md->state != FTL_BAND_STATE_OPEN && band->md->state != FTL_BAND_STATE_FULL){
+			dev->valid_blocks_in_bands--;
+		}
 	}
 
 	/* Invalidate open/full band p2l_map entry to keep p2l and l2p
@@ -295,11 +297,11 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev)
 
 	// if (dev->num_free <= limit) {
 	double invalid_ratio = 0.0;
-	uint64_t no_free_blocks = (dev->num_bands - dev->num_free) * dev->num_blocks_in_band;
-	invalid_ratio = 1.0 - (double)(dev->valid_blocks_in_bands / no_free_blocks);
+	uint64_t shut_blocks = dev->num_shut * dev->num_blocks_in_band;
+	invalid_ratio = 1.0 - (double)dev->valid_blocks_in_bands / shut_blocks;
 	double free_band_ratio = (double)dev->num_free / dev->num_bands;
-	if (invalid_ratio >= 1.2 * free_band_ratio || dev->num_free <= limit) {
-		if (invalid_ratio >= 1.2 * free_band_ratio) {
+	if (invalid_ratio >= 0.2 || free_band_ratio < 0.8 || dev->num_free <= limit) {
+		if (invalid_ratio >= 0.2 || free_band_ratio < 0.8) {
 			FTL_NOTICELOG(dev, "Invalid Ratio: %.2f, and Free Band Ratio: %.2f, need GC\n", invalid_ratio, free_band_ratio);
 		}
 		FTL_NOTICELOG(dev, "Free Band N: %zu, need GC, poller ite: %zu\n", dev->num_free, dev->poller_ite_cnt);

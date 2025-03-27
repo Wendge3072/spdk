@@ -222,6 +222,7 @@ restore_band_state_cb(struct spdk_ftl_dev *dev, struct ftl_md *md, int status)
 			break;
 		case FTL_BAND_STATE_OPEN:
 			TAILQ_REMOVE(&band->dev->shut_bands, band, queue_entry);
+			dev->num_shut--;
 			TAILQ_INSERT_HEAD(&pctx->open_bands, band, queue_entry);
 			break;
 		case FTL_BAND_STATE_CLOSED:
@@ -701,6 +702,7 @@ ftl_mngt_recovery_open_bands_p2l(struct spdk_ftl_dev *dev, struct ftl_mngt_proce
 	 */
 	TAILQ_REMOVE(&pctx->open_bands, band, queue_entry);
 	TAILQ_INSERT_TAIL(&dev->shut_bands, band, queue_entry);
+	dev->num_shut++;
 
 	FTL_NOTICELOG(dev, "Open band recovered, id = %u, seq id %"PRIu64", write offset %"PRIu64"\n",
 		      band->id, band->md->seq, band->md->iter.offset);

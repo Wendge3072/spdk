@@ -61,6 +61,7 @@ ftl_dev_init_bands(struct spdk_ftl_dev *dev)
 
 		/* Adding to shut_bands is necessary - see ftl_restore_band_close_cb() */
 		TAILQ_INSERT_TAIL(&dev->shut_bands, band, queue_entry);
+		dev->num_shut++;
 	}
 
 	return 0;
@@ -184,6 +185,7 @@ decorate_bands(struct spdk_ftl_dev *dev)
 		band = &dev->bands[i];
 		dev->num_bands--;
 		TAILQ_REMOVE(&dev->shut_bands, band, queue_entry);
+		dev->num_shut--;
 		i++;
 	}
 
@@ -329,6 +331,7 @@ ftl_mngt_finalize_init_bands(struct spdk_ftl_dev *dev, struct ftl_mngt_process *
 		if (band->md->state == FTL_BAND_STATE_OPEN ||
 		    band->md->state == FTL_BAND_STATE_FULL) {
 			TAILQ_REMOVE(&dev->shut_bands, band, queue_entry);
+			dev->num_shut--;
 			open_bands[num_open++] = band;
 			assert(num_open <= FTL_MAX_OPEN_BANDS);
 			continue;
@@ -336,6 +339,7 @@ ftl_mngt_finalize_init_bands(struct spdk_ftl_dev *dev, struct ftl_mngt_process *
 
 		if (dev->conf.mode & SPDK_FTL_MODE_CREATE) {
 			TAILQ_REMOVE(&dev->shut_bands, band, queue_entry);
+			dev->num_shut--;
 			assert(band->md->state == FTL_BAND_STATE_FREE);
 			band->md->state = FTL_BAND_STATE_CLOSED;
 			ftl_band_set_state(band, FTL_BAND_STATE_FREE);

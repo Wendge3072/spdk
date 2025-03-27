@@ -108,6 +108,8 @@ struct spdk_ftl_dev {
 	/* Closed bands list */
 	TAILQ_HEAD(, ftl_band)		shut_bands;
 
+	uint64_t            num_shut;
+
 	/* Number of free bands */
 	uint64_t			num_free;
 
