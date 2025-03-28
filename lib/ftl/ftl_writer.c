@@ -176,10 +176,17 @@ ftl_writer_run(struct ftl_writer *writer)
 			return;
 		}
 
-		/* Finally we can write to band */
+		
 		rq = TAILQ_FIRST(&writer->rq_queue);
+		// if(rq->can_throttle && writer->blocks_written > writer->blocks_limit){
+		// 	return;
+		// }
+		/* Finally we can write to band */
 		TAILQ_REMOVE(&writer->rq_queue, rq, qentry);
 		ftl_band_rq_write(writer->band, rq, writer->writer_type);
+		// if(rq->can_throttle){
+		// 	writer->blocks_written += rq->num_blocks;
+		// }
 	}
 }
 

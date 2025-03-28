@@ -202,6 +202,7 @@ move_set_state(struct ftl_reloc_move *mv, enum ftl_reloc_move_state state)
 		mv->rq->iter.idx = 0;
 		mv->rq->iter.count = 0;
 		mv->rq->success = true;
+		mv->rq->can_throttle = false;
 		break;
 
 	case FTL_RELOC_STATE_WRITE:
@@ -237,7 +238,7 @@ move_get_band_cb(struct ftl_band *band, void *cntx, bool status)
 	if (spdk_likely(status)) {
 		reloc->band = band;
 		ftl_band_iter_init(band);
-		if (band->dev->num_free > 5){
+		if (band->dev->num_free > ftl_get_limit(dev, SPDK_FTL_LIMIT_START)){
 			band->is_background_gc = true;
 		} else {
 			band->is_background_gc = false;
@@ -435,6 +436,10 @@ move_read(struct ftl_reloc *reloc, struct ftl_reloc_move *mv, struct ftl_band *b
 	rq->iter.count = spdk_min(rq_left, band_left);
 
 	ftl_band_rq_read(band, rq);
+
+	if (band->is_background_gc){
+		mv->rq->can_throttle = true;
+	}
 
 	move_advance_rq(rq);
 

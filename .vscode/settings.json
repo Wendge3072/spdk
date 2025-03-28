@@ -1,5 +1,16 @@
 {
     "files.associations": {
-        "locale": "c"
+        "locale": "c",
+        "__config": "c",
+        "__split_buffer": "c",
+        "algorithm": "c",
+        "bit": "c",
+        "map": "c",
+        "memory": "c",
+        "string": "c",
+        "unordered_map": "c",
+        "vector": "c",
+        "bitset": "c",
+        "set": "c"
     }
 }

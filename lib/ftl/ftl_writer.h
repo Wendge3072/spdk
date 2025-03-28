@@ -43,6 +43,10 @@ struct ftl_writer {
 	uint64_t idle_tsc;
 
 	bool writer_halt;
+
+	uint64_t blocks_written;
+
+	uint64_t blocks_limit;
 };
 
 bool ftl_writer_is_halted(struct ftl_writer *writer);

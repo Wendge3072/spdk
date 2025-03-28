@@ -175,6 +175,8 @@ struct spdk_ftl_dev {
 	/* Writer for GC IOs */
 	struct ftl_writer		writer_gc;
 
+	struct ftl_writer       writer_gc_background;
+
 	uint32_t			num_logical_bands_in_physical;
 
 	/* Retry init sequence */

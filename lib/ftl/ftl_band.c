@@ -113,7 +113,9 @@ _ftl_band_set_closed_cb(struct ftl_band *band, bool valid)
 	assert(band->p2l_map.ref_cnt == 0);
 
 	TAILQ_INSERT_TAIL(&dev->shut_bands, band, queue_entry);
-	dev->valid_blocks_in_bands += band->p2l_map.num_valid;
+	uint64_t num_valid_blk = ftl_bitmap_count_set(band->p2l_map.valid);
+	FTL_NOTICELOG(dev, "Band %u closed, valid blk num: %zu, actual num: %zu\n", band->id, band->p2l_map.num_valid, num_valid_blk);
+	dev->valid_blocks_in_bands += num_valid_blk;
 	dev->num_shut++;
 }
 
@@ -537,11 +539,14 @@ band_start_gc(struct spdk_ftl_dev *dev, struct ftl_band *band)
 
 	TAILQ_REMOVE(&dev->shut_bands, band, queue_entry);
 	dev->num_shut--;
-	dev->valid_blocks_in_bands -= band->p2l_map.num_valid;
+	uint64_t num_valid_blk = ftl_bitmap_count_set(band->p2l_map.valid);
+	FTL_NOTICELOG(dev, "Band %u closed, valid blk num: %zu, actual num: %zu\n", band->id, band->p2l_map.num_valid, num_valid_blk);
+	dev->valid_blocks_in_bands -= num_valid_blk;
 	band->reloc = true;
 
 	// FTL_DEBUGLOG(dev, "Band to GC, id %u\n", band->id);
 	FTL_NOTICELOG(dev, "Band id %u, going to GC, poller ite: %zu\n", band->id, dev->poller_ite_cnt);
+	FTL_NOTICELOG(dev, "Selected Band Invalidity %.2f%%\n", _band_invalidity(band) * 100);
 }
 
 static struct ftl_band *
@@ -629,6 +634,7 @@ ftl_band_search_next_to_reloc(struct spdk_ftl_dev *dev)
 	if (FTL_BAND_PHYS_ID_INVALID != phys_id) {
 		// FTL_DEBUGLOG(dev, "Band physical id %"PRIu64" to GC\n", phys_id);
 		FTL_NOTICELOG(dev, "Band physical id %"PRIu64" to GC, and GC band search time %.2f ms, poller ite: %zu\n", phys_id, (double)(tsc_e * 1000 / spdk_get_ticks_hz()), dev->poller_ite_cnt);
+		FTL_NOTICELOG(dev, "Selected Phys band Invalidity %.2f%%\n", max_invalidity * 100);
 		dev->sb_shm->gc_info.is_valid = 0;
 		dev->sb_shm->gc_info.current_band_id = phys_id * phys_count;
 		dev->sb_shm->gc_info.band_phys_id = phys_id;
