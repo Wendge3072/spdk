@@ -298,7 +298,7 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev)
 	// if (dev->num_free <= limit) {
 	double invalid_ratio = 0.0;
 	uint64_t shut_blocks = dev->num_shut * 
-			spdk_divide_round_up(dev->num_blocks_in_band * 16, FTL_BLOCK_SIZE);
+			(dev->num_blocks_in_band - spdk_divide_round_up(dev->num_blocks_in_band * 16, FTL_BLOCK_SIZE));
 	invalid_ratio = 1.0 - (double)dev->valid_blocks_in_bands / shut_blocks;
 	double free_band_ratio = (double)dev->num_free / dev->num_bands;
 	if (invalid_ratio > 0.01 || dev->num_free <= limit) {
@@ -725,7 +725,7 @@ void ftl_print_per_sec(struct spdk_ftl_dev *dev){
 		dev->last_print_tsc = tsc;
 		FTL_NOTICELOG(dev, "Valid Block Num: %zu\n", dev->valid_blocks_in_bands);
 		FTL_NOTICELOG(dev, "Invalid Block Ratio: %.2f %%\n", 100.0 - dev->valid_blocks_in_bands * 100.0 / 
-				(dev->num_shut * spdk_divide_round_up(dev->num_blocks_in_band * 16, FTL_BLOCK_SIZE)));
+			(dev->num_blocks_in_band - spdk_divide_round_up(dev->num_blocks_in_band * 16, FTL_BLOCK_SIZE)));
 		FTL_NOTICELOG(dev, "Poller Free Bands: %zu, poller cnts: %zu\n", dev->num_free, dev->poller_ite_cnt);
 		FTL_NOTICELOG(dev, "User writing BandWidth: %.2f MiB/s\n", (double)dev->nv_cache.n_submit_blks * FTL_BLOCK_SIZE / (1024*1024));
 		FTL_NOTICELOG(dev, "Compaction Writing: %.2f MiB/s\n", (double)dev->compaction_bw * FTL_BLOCK_SIZE / (1024*1024));

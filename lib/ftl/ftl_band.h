@@ -151,6 +151,8 @@ struct ftl_band {
 
 	/* Callback function for validate md */
 	ftl_band_validate_md_cb		validate_cb;
+
+	bool                is_background_gc;
 };
 
 

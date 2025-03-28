@@ -237,6 +237,11 @@ move_get_band_cb(struct ftl_band *band, void *cntx, bool status)
 	if (spdk_likely(status)) {
 		reloc->band = band;
 		ftl_band_iter_init(band);
+		if (band->dev->num_free > 5){
+			band->is_background_gc = true;
+		} else {
+			band->is_background_gc = false;
+		}
 	}
 	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
 	tsc = tsc - reloc->search_band_time;
