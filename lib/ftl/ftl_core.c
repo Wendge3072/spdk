@@ -299,7 +299,7 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev)
 	double invalid_ratio = 0.0;
 	uint64_t shut_blocks = dev->num_shut * 
 			(dev->num_blocks_in_band - spdk_divide_round_up(dev->num_blocks_in_band * 16, FTL_BLOCK_SIZE));
-	invalid_ratio = 1.0 - (double)dev->valid_blocks_in_bands / shut_blocks;
+	invalid_ratio = shut_blocks ? 1.0 - (double)dev->valid_blocks_in_bands / shut_blocks : 0.0;
 	double free_band_ratio = (double)dev->num_free / dev->num_bands;
 	if (invalid_ratio > 0.01 || dev->num_free <= limit) {
 		if (invalid_ratio > 0.01) {
