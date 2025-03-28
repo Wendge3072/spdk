@@ -297,7 +297,8 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev)
 
 	// if (dev->num_free <= limit) {
 	double invalid_ratio = 0.0;
-	uint64_t shut_blocks = dev->num_shut * dev->num_blocks_in_band;
+	uint64_t shut_blocks = dev->num_shut * 
+			spdk_divide_round_up(dev->num_blocks_in_band * 16, FTL_BLOCK_SIZE);
 	invalid_ratio = 1.0 - (double)dev->valid_blocks_in_bands / shut_blocks;
 	double free_band_ratio = (double)dev->num_free / dev->num_bands;
 	if ((invalid_ratio >= 0.2 && free_band_ratio < 0.8) || dev->num_free <= limit) {
@@ -723,8 +724,8 @@ void ftl_print_per_sec(struct spdk_ftl_dev *dev){
 	if(tsc - dev->last_print_tsc > spdk_get_ticks_hz()){
 		dev->last_print_tsc = tsc;
 		FTL_NOTICELOG(dev, "Valid Block Num: %zu\n", dev->valid_blocks_in_bands);
-		FTL_NOTICELOG(dev, "Invalid Block Ratio: %.2f %%, STD Inv Ratio: %.2f %%\n", 
-						(1.0 - (double)dev->valid_blocks_in_bands / (1.0 * dev->num_shut * dev->num_blocks_in_band)) * 100, 
+		FTL_NOTICELOG(dev, "Invalid Block Ratio: %.2f %%, STD NoV Ratio: %.2f %%\n", 
+						100.0 - dev->valid_blocks_in_bands * 100.0 / (dev->num_shut * spdk_divide_round_up(dev->num_blocks_in_band * 16, FTL_BLOCK_SIZE)), 
 						100.0 - ftl_bitmap_count_set_range(dev->valid_map, 0, dev->layout.base.total_blocks) * 100.0 / dev->layout.base.total_blocks);
 		FTL_NOTICELOG(dev, "Poller Free Bands: %zu, poller cnts: %zu\n", dev->num_free, dev->poller_ite_cnt);
 		FTL_NOTICELOG(dev, "User writing BandWidth: %.2f MiB/s\n", (double)dev->nv_cache.n_submit_blks * FTL_BLOCK_SIZE / (1024*1024));
