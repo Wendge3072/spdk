@@ -155,7 +155,7 @@ ftl_invalidate_addr(struct spdk_ftl_dev *dev, ftl_addr addr)
 		assert(p2l_map->num_valid > 0);
 		ftl_bitmap_clear(dev->valid_map, addr);
 		p2l_map->num_valid--;
-		if(band->md->state != FTL_BAND_STATE_OPEN && band->md->state != FTL_BAND_STATE_FULL){
+		if(band->md->state == FTL_BAND_STATE_CLOSED){
 			dev->valid_blocks_in_bands--;
 		}
 	}
@@ -722,7 +722,7 @@ void ftl_print_per_sec(struct spdk_ftl_dev *dev){
 	dev->poller_ite_cnt++;
 	if(tsc - dev->last_print_tsc > spdk_get_ticks_hz()){
 		dev->last_print_tsc = tsc;
-		FTL_NOTICELOG(dev, "Shut Band Num: %zu\n", dev->num_shut);
+		FTL_NOTICELOG(dev, "Invalid Block Ratio: %zu\n", (1.0 - (double)dev->valid_blocks_in_bands/(1.0 * dev->num_shut * dev->num_blocks_in_band)));
 		FTL_NOTICELOG(dev, "Poller Free Bands: %zu, poller cnts: %zu\n", dev->num_free, dev->poller_ite_cnt);
 		FTL_NOTICELOG(dev, "User writing BandWidth: %.2f MiB/s\n", (double)dev->nv_cache.n_submit_blks * FTL_BLOCK_SIZE / (1024*1024));
 		FTL_NOTICELOG(dev, "Compaction Writing: %.2f MiB/s\n", (double)dev->compaction_bw * FTL_BLOCK_SIZE / (1024*1024));

@@ -113,6 +113,7 @@ _ftl_band_set_closed_cb(struct ftl_band *band, bool valid)
 	assert(band->p2l_map.ref_cnt == 0);
 
 	TAILQ_INSERT_TAIL(&dev->shut_bands, band, queue_entry);
+	dev->valid_blocks_in_bands += band->p2l_map.num_valid;
 	dev->num_shut++;
 }
 
@@ -536,6 +537,7 @@ band_start_gc(struct spdk_ftl_dev *dev, struct ftl_band *band)
 
 	TAILQ_REMOVE(&dev->shut_bands, band, queue_entry);
 	dev->num_shut--;
+	dev->valid_blocks_in_bands -= band->p2l_map.num_valid;
 	band->reloc = true;
 
 	// FTL_DEBUGLOG(dev, "Band to GC, id %u\n", band->id);

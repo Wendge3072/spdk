@@ -326,7 +326,6 @@ band_close_cb(int status, void *cb_arg)
 	}
 
 	band->md->p2l_map_checksum = band->p2l_map.band_dma_md->p2l_map_checksum;
-	band->dev->valid_blocks_in_bands += band->p2l_map.num_valid;
 	ftl_band_set_state(band, FTL_BAND_STATE_CLOSED);
 }
 
