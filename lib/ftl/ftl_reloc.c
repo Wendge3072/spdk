@@ -659,6 +659,10 @@ ftl_reloc_is_halted(const struct ftl_reloc *reloc)
 	return true;
 }
 
+// static void
+// ftl_process_reloc_throttle(struct ftl_reloc *reloc){
+// }
+
 void
 ftl_reloc(struct ftl_reloc *reloc)
 {
@@ -674,4 +678,6 @@ ftl_reloc(struct ftl_reloc *reloc)
 	}
 
 	move_release_bands(reloc);
+
+	// ftl_process_reloc_throttle(reloc);
 }
