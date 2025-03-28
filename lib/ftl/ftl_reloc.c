@@ -238,7 +238,7 @@ move_get_band_cb(struct ftl_band *band, void *cntx, bool status)
 	if (spdk_likely(status)) {
 		reloc->band = band;
 		ftl_band_iter_init(band);
-		if (band->dev->num_free > ftl_get_limit(dev, SPDK_FTL_LIMIT_START)){
+		if (band->dev->num_free > 5){
 			band->is_background_gc = true;
 		} else {
 			band->is_background_gc = false;
