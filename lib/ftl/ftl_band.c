@@ -113,10 +113,9 @@ _ftl_band_set_closed_cb(struct ftl_band *band, bool valid)
 	assert(band->p2l_map.ref_cnt == 0);
 
 	TAILQ_INSERT_TAIL(&dev->shut_bands, band, queue_entry);
-	uint64_t num_valid_blk = ftl_bitmap_count_set(band->p2l_map.valid);
-	FTL_NOTICELOG(dev, "Band %u closed, valid blk num: %zu, actual num: %zu\n", band->id, band->p2l_map.num_valid, num_valid_blk);
-	dev->valid_blocks_in_bands += num_valid_blk;
+	dev->valid_blocks_in_bands += band->p2l_map.num_valid;
 	dev->num_shut++;
+	FTL_NOTICELOG(dev, "Band %u closed, valid blk num: %zu, valid block total: %zu, shut band num: %zu\n", band->id, band->p2l_map.num_valid, dev->valid_blocks_in_bands, dev->num_shut);
 }
 
 static void
@@ -539,13 +538,11 @@ band_start_gc(struct spdk_ftl_dev *dev, struct ftl_band *band)
 
 	TAILQ_REMOVE(&dev->shut_bands, band, queue_entry);
 	dev->num_shut--;
-	uint64_t num_valid_blk = ftl_bitmap_count_set(band->p2l_map.valid);
-	FTL_NOTICELOG(dev, "Band %u closed, valid blk num: %zu, actual num: %zu\n", band->id, band->p2l_map.num_valid, num_valid_blk);
-	dev->valid_blocks_in_bands -= num_valid_blk;
+	dev->valid_blocks_in_bands -= band->p2l_map.num_valid;
 	band->reloc = true;
 
 	// FTL_DEBUGLOG(dev, "Band to GC, id %u\n", band->id);
-	FTL_NOTICELOG(dev, "Band id %u, going to GC, poller ite: %zu\n", band->id, dev->poller_ite_cnt);
+	FTL_NOTICELOG(dev, "Band id %u, going to GC, valid blk num: %zu, total valid block: %zu, shut band num: %zu\n", band->id, band->p2l_map.num_valid, dev->valid_blocks_in_bands, dev->num_shut);
 	FTL_NOTICELOG(dev, "Selected Band Invalidity %.2f%%\n", _band_invalidity(band) * 100);
 }
 
