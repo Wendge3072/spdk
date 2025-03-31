@@ -163,10 +163,10 @@ static const struct ftl_mngt_process_desc desc_first_start = {
 			.action = ftl_mngt_clear_l2p,
 			.cleanup = ftl_mngt_clear_l2p
 		},
-		{
+		{// TO Comment
 			.name = "Scrub NV cache",
 			.action = ftl_mngt_scrub_nv_cache,
-		},
+		},// TO Comment
 		{
 			.name = "Finalize band initialization",
 			.action = ftl_mngt_finalize_init_bands,
@@ -175,10 +175,10 @@ static const struct ftl_mngt_process_desc desc_first_start = {
 			.name = "Save initial band info metadata",
 			.action = ftl_mngt_persist_band_info_metadata,
 		},
-		{ // TO Comment
+		{
 			.name = "Save initial chunk info metadata",
 			.action = ftl_mngt_persist_nv_cache_metadata,
-		},// TO Comment
+		},
 		{
 			.name = "Initialize P2L checkpointing",
 			.action = ftl_mngt_p2l_init_ckpt,
