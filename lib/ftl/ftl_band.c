@@ -561,11 +561,7 @@ double ftl_update_phygrp_invalid(struct spdk_ftl_dev *dev){
 			}
 		}
 	}
-	if (phys_count != FTL_BAND_PHYS_ID_INVALID){
-		return max_invalidity;
-	}else{
-		return 0.0L;
-	}
+	return max_invalidity;
 }
 
 static void
