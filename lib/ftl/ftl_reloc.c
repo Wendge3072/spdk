@@ -11,6 +11,8 @@
 #include "spdk/ftl.h"
 #include "spdk/likely.h"
 
+#define FTL_RELOC_THROTTLE_INTERVAL_MS 50
+
 struct ftl_reloc;
 struct ftl_band_reloc;
 
@@ -68,6 +70,16 @@ struct ftl_reloc {
 
 	/* Array of movers queue for each state */
 	TAILQ_HEAD(, ftl_reloc_move) move_queue[FTL_RELOC_STATE_MAX];
+
+	/* Throttle for the reloc */
+	struct {
+		uint64_t rInterval_tsc;
+		uint64_t rStart_tsc;
+		uint64_t rBlocks_submitted;
+		uint64_t rBlocks_submitted_limit;
+	} rThrottle;
+
+	double Max_invalidity;
 
 };
 
@@ -140,6 +152,10 @@ ftl_reloc_init(struct spdk_ftl_dev *dev)
 	}
 
 	TAILQ_INIT(&reloc->band_done);
+
+	/* Initialize the throttle */
+	reloc->rThrottle.rInterval_tsc = FTL_RELOC_THROTTLE_INTERVAL_MS *
+		spdk_get_ticks_hz() / 1000;
 
 	return reloc;
 error:
@@ -671,7 +687,14 @@ ftl_reloc_is_halted(const struct ftl_reloc *reloc)
 
 static void
 ftl_process_reloc_throttle(struct ftl_reloc *reloc){
-	
+	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
+	if(spdk_unlikely(!reloc->rThrottle.rStart_tsc)){
+		reloc->rThrottle.rStart_tsc = tsc;
+	} else if(tsc - reloc->rThrottle.rStart_tsc >= reloc->rThrottle.rInterval_tsc){
+		// ftl_throttle_update(reloc->dev);
+		reloc->Max_invalidity = ftl_update_phygrp_invalid(reloc->dev);
+		reloc->rThrottle.rStart_tsc = tsc;
+	}
 }
 
 void
@@ -690,5 +713,5 @@ ftl_reloc(struct ftl_reloc *reloc)
 
 	move_release_bands(reloc);
 
-	// ftl_process_reloc_throttle(reloc);
+	ftl_process_reloc_throttle(reloc);
 }
