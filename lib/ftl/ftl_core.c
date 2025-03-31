@@ -17,7 +17,7 @@
 #include "ftl_io.h"
 #include "ftl_debug.h"
 #include "ftl_internal.h"
-#include "ftl_reloc.c"
+#include "ftl_reloc.h"
 #include "mngt/ftl_mngt.h"
 
 
