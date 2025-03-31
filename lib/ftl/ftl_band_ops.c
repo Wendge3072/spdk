@@ -526,7 +526,7 @@ ftl_band_read_tail_brq_md(struct ftl_band *band, ftl_band_md_cb cb, void *cntx)
 }
 
 void
-ftl_band_get_next_gc(struct spdk_ftl_dev *dev, ftl_band_ops_cb cb, void *cntx)
+ftl_band_get_next_gc(struct spdk_ftl_dev *dev, ftl_band_ops_cb cb, void *cntx, bool background_gc)
 {
 	struct ftl_band *band = ftl_band_search_next_to_reloc(dev);
 
@@ -542,6 +542,7 @@ ftl_band_get_next_gc(struct spdk_ftl_dev *dev, ftl_band_ops_cb cb, void *cntx)
 	assert(!band->owner.priv);
 	band->owner.ops_fn = cb;
 	band->owner.priv = cntx;
+	band->is_background_gc = background_gc;
 
 	read_md(band);
 }

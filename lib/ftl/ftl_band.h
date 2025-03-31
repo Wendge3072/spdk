@@ -188,7 +188,7 @@ void ftl_band_rq_write(struct ftl_band *band, struct ftl_rq *rq, enum ftl_band_t
 void ftl_band_rq_read(struct ftl_band *band, struct ftl_rq *rq);
 void ftl_band_basic_rq_write(struct ftl_band *band, struct ftl_basic_rq *brq);
 void ftl_band_basic_rq_read(struct ftl_band *band, struct ftl_basic_rq *brq);
-void ftl_band_get_next_gc(struct spdk_ftl_dev *dev, ftl_band_ops_cb cb, void *cntx);
+void ftl_band_get_next_gc(struct spdk_ftl_dev *dev, ftl_band_ops_cb cb, void *cntx, bool background_gc);
 void ftl_band_read_tail_brq_md(struct ftl_band *band, ftl_band_md_cb cb, void *cntx);
 void ftl_band_initialize_free_state(struct ftl_band *band);
 double ftl_update_phygrp_invalid(struct spdk_ftl_dev *dev);

@@ -247,18 +247,13 @@ move_set_state(struct ftl_reloc_move *mv, enum ftl_reloc_move_state state)
 }
 
 static void
-move_get_band_cb(struct ftl_band *band, void *cntx, bool status)
+move_get_band_cb(struct ftl_band *band, void *cntx, bool status, bool )
 {
 	struct ftl_reloc *reloc = cntx;
 
 	if (spdk_likely(status)) {
 		reloc->band = band;
 		ftl_band_iter_init(band);
-		if (band->dev->num_free > 5){
-			band->is_background_gc = true;
-		} else {
-			band->is_background_gc = false;
-		}
 	}
 	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
 	tsc = tsc - reloc->search_band_time;
@@ -271,7 +266,8 @@ static void
 move_grab_new_band(struct ftl_reloc *reloc)
 {
 	if (!reloc->band_waiting) {
-		if (!ftl_needs_reloc(reloc->dev)) {
+		bool bg_gc = false;
+		if (!ftl_needs_reloc(reloc->dev, bg_gc)) {
 			return;
 		}
 
@@ -283,7 +279,7 @@ move_grab_new_band(struct ftl_reloc *reloc)
 		reloc->band_waiting = true;
 		uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
 		reloc->search_band_time = tsc;
-		ftl_band_get_next_gc(reloc->dev, move_get_band_cb, reloc);
+		ftl_band_get_next_gc(reloc->dev, move_get_band_cb, reloc, bg_gc);
 	}
 }
 
@@ -686,7 +682,7 @@ ftl_reloc_is_halted(const struct ftl_reloc *reloc)
 }
 
 static void
-ftl_process_reloc_throttle(struct ftl_reloc *reloc){
+ftl_reloc_update(struct ftl_reloc *reloc){
 	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
 	if(spdk_unlikely(!reloc->rThrottle.rStart_tsc)){
 		reloc->rThrottle.rStart_tsc = tsc;
@@ -713,5 +709,5 @@ ftl_reloc(struct ftl_reloc *reloc)
 
 	move_release_bands(reloc);
 
-	ftl_process_reloc_throttle(reloc);
+	ftl_reloc_update(reloc);
 }
