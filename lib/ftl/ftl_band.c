@@ -547,6 +547,7 @@ double ftl_update_phygrp_invalid(struct ftl_reloc *reloc){
 	struct spdk_ftl_dev *dev = reloc->dev;
 	uint64_t band_count = ftl_get_num_bands(dev);
 	uint64_t phys_count = dev->num_logical_bands_in_physical;
+	uint64_t i;
 	struct ftl_band *band;
 	for (i = 0; i < band_count; i += phys_count) {
 		band = &dev->bands[i];
