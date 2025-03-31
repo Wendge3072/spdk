@@ -643,10 +643,15 @@ ftl_band_search_next_to_reloc(struct spdk_ftl_dev *dev)
 	}
 	uint64_t tsc_e = spdk_thread_get_last_tsc(spdk_get_thread());
 	tsc_e -= tsc_s;
+	dev->search_physical_band_tsc += tsc_e;
 	if (FTL_BAND_PHYS_ID_INVALID != phys_id) {
 		// FTL_DEBUGLOG(dev, "Band physical id %"PRIu64" to GC\n", phys_id);
-		FTL_NOTICELOG(dev, "Band physical id %"PRIu64" to GC, and GC band search time %.2f ms, poller ite: %zu\n", phys_id, (double)(tsc_e * 1000 / spdk_get_ticks_hz()), dev->poller_ite_cnt);
+		FTL_NOTICELOG(dev, "Band physical id %"PRIu64" to GC, and GC band search time %.2f us, poller ite: %zu\n", phys_id, (double)(tsc_e * 1000000 / spdk_get_ticks_hz()), dev->poller_ite_cnt);
 		FTL_NOTICELOG(dev, "Selected Phys band Invalidity %.2f%%\n", max_invalidity * 100);
+		if (max_invalidity < 0.1L){
+			FTL_NOTICELOG(dev, "Selected Phys band Invalidity is too low, %.2f%%\n", max_invalidity * 100);
+			return NULL;
+		}
 		dev->sb_shm->gc_info.is_valid = 0;
 		dev->sb_shm->gc_info.current_band_id = phys_id * phys_count;
 		dev->sb_shm->gc_info.band_phys_id = phys_id;

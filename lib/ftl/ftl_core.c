@@ -733,6 +733,7 @@ void ftl_print_per_sec(struct spdk_ftl_dev *dev){
 		}
 		FTL_NOTICELOG(dev, "Valid Block Num: %zu, actual: %zu\n", dev->valid_blocks_in_bands, valid_blocks_in_bands);
 		FTL_NOTICELOG(dev, "Invalid Block Ratio: %.2f %%\n", 100.0 * invalid_ratio);
+		FTL_NOTICELOG(dev, "Time to search physical band: %.2f ms\n", (double)dev->search_physical_band_tsc / spdk_get_ticks_hz() * 1000);
 		FTL_NOTICELOG(dev, "Poller Free Bands: %zu, poller cnts: %zu\n", dev->num_free, dev->poller_ite_cnt);
 		FTL_NOTICELOG(dev, "User writing BandWidth: %.2f MiB/s\n", (double)dev->nv_cache.n_submit_blks * FTL_BLOCK_SIZE / (1024*1024));
 		FTL_NOTICELOG(dev, "Compaction Writing: %.2f MiB/s\n", (double)dev->compaction_bw * FTL_BLOCK_SIZE / (1024*1024));
@@ -741,6 +742,7 @@ void ftl_print_per_sec(struct spdk_ftl_dev *dev){
 		dev->poller_ite_cnt = 0;
 		dev->compaction_bw = 0;
 		dev->gc_bw = 0;
+		dev->search_physical_band_tsc = 0;
 	}
 }
 
