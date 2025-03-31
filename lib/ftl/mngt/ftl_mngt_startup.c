@@ -175,10 +175,10 @@ static const struct ftl_mngt_process_desc desc_first_start = {
 			.name = "Save initial band info metadata",
 			.action = ftl_mngt_persist_band_info_metadata,
 		},
-		{
+		{ // TO Comment
 			.name = "Save initial chunk info metadata",
 			.action = ftl_mngt_persist_nv_cache_metadata,
-		},
+		},// TO Comment
 		{
 			.name = "Initialize P2L checkpointing",
 			.action = ftl_mngt_p2l_init_ckpt,
