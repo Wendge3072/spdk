@@ -267,7 +267,7 @@ move_grab_new_band(struct ftl_reloc *reloc)
 {
 	if (!reloc->band_waiting) {
 		bool bg_gc = false;
-		if (!ftl_needs_reloc(reloc->dev, bg_gc)) {
+		if (!ftl_needs_reloc(reloc->dev, &bg_gc)) {
 			return;
 		}
 

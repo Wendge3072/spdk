@@ -291,7 +291,7 @@ ftl_submit_read(struct ftl_io *io)
 }
 
 bool
-ftl_needs_reloc(struct spdk_ftl_dev *dev, bool &background_gc)
+ftl_needs_reloc(struct spdk_ftl_dev *dev, bool *background_gc)
 {
 	size_t limit = ftl_get_limit(dev, SPDK_FTL_LIMIT_START);
 
@@ -304,11 +304,11 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev, bool &background_gc)
 	if ((invalid_ratio > 0.015L && dev->reloc->Max_invalidity > 0.1L) || dev->num_free <= limit) {
 		if (invalid_ratio > 0.015L) {
 			FTL_NOTICELOG(dev, "Invalid Ratio: %.2f, and Free Band Ratio: %.2f, need GC\n", invalid_ratio, free_band_ratio);
-			background_gc = true;
+			*background_gc = true;
 		}
 		else{
 			FTL_NOTICELOG(dev, "Free Band N: %zu, need GC, poller ite: %zu\n", dev->num_free, dev->poller_ite_cnt);
-			background_gc = false;
+			*background_gc = false;
 		}
 		return true;
 	}

@@ -209,7 +209,7 @@ int ftl_io_channel_poll(void *arg);
 
 struct ftl_io_channel *ftl_io_channel_get_ctx(struct spdk_io_channel *ioch);
 
-bool ftl_needs_reloc(struct spdk_ftl_dev *dev, bool &background_gc);
+bool ftl_needs_reloc(struct spdk_ftl_dev *dev, bool *background_gc);
 
 struct ftl_band *ftl_band_get_next_free(struct spdk_ftl_dev *dev, enum ftl_band_type writer_type);
 
