@@ -290,6 +290,8 @@ ftl_submit_read(struct ftl_io *io)
 	}
 }
 
+extern ftl_reloc;
+
 bool
 ftl_needs_reloc(struct spdk_ftl_dev *dev, bool *background_gc)
 {
