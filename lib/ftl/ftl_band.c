@@ -540,6 +540,34 @@ band_cmp(double a_invalidity, double a_wr_cnt,
 	return a_id < b_id;
 }
 
+double ftl_update_phygrp_invalid(struct ftl_reloc *reloc){
+	double invalidity, max_invalidity = 0.0L;
+	double wr_cnt, max_wr_cnt = 0.0L;
+	uint64_t phys_id = FTL_BAND_PHYS_ID_INVALID;
+	struct spdk_ftl_dev *dev = reloc->dev;
+	uint64_t band_count = ftl_get_num_bands(dev);
+	uint64_t phys_count = dev->num_logical_bands_in_physical;
+	struct ftl_band *band;
+	for (i = 0; i < band_count; i += phys_count) {
+		band = &dev->bands[i];
+		get_band_phys_info(dev, band->phys_id, &invalidity, &wr_cnt);
+		if (invalidity != 0.0L) {
+			if (phys_id == FTL_BAND_PHYS_ID_INVALID ||
+			    band_cmp(invalidity, wr_cnt, max_invalidity, max_wr_cnt,
+				     band->phys_id, phys_id)) {
+				max_invalidity = invalidity;
+				max_wr_cnt = wr_cnt;
+				phys_id = band->phys_id;
+			}
+		}
+	}
+	if (phys_count != FTL_BAND_PHYS_ID_INVALID){
+		return max_invalidity;
+	}else{
+		return 0.0L;
+	}
+}
+
 static void
 band_start_gc(struct spdk_ftl_dev *dev, struct ftl_band *band)
 {
