@@ -17,6 +17,7 @@
 #include "ftl_io.h"
 #include "ftl_debug.h"
 #include "ftl_internal.h"
+#include "ftl_reloc.c"
 #include "mngt/ftl_mngt.h"
 
 
@@ -289,8 +290,6 @@ ftl_submit_read(struct ftl_io *io)
 		ftl_io_complete(io);
 	}
 }
-
-extern struct ftl_reloc;
 
 bool
 ftl_needs_reloc(struct spdk_ftl_dev *dev, bool *background_gc)
