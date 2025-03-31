@@ -540,11 +540,10 @@ band_cmp(double a_invalidity, double a_wr_cnt,
 	return a_id < b_id;
 }
 
-double ftl_update_phygrp_invalid(struct ftl_reloc *reloc){
+double ftl_update_phygrp_invalid(struct spdk_ftl_dev *dev){
 	double invalidity, max_invalidity = 0.0L;
 	double wr_cnt, max_wr_cnt = 0.0L;
 	uint64_t phys_id = FTL_BAND_PHYS_ID_INVALID;
-	struct spdk_ftl_dev *dev = reloc->dev;
 	uint64_t band_count = ftl_get_num_bands(dev);
 	uint64_t phys_count = dev->num_logical_bands_in_physical;
 	uint64_t i;
