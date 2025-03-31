@@ -12,5 +12,6 @@
         "vector": "c",
         "bitset": "c",
         "set": "c"
-    }
+    },
+    "cmake.ignoreCMakeListsMissing": true
 }

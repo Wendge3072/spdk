@@ -551,7 +551,7 @@ band_start_gc(struct spdk_ftl_dev *dev, struct ftl_band *band)
 		FTL_ERRLOG(dev, "Band %u is in shut band list\n", band->id);
 		dev->valid_blocks_in_bands -= band->p2l_map.num_valid;
 	}else{
-		FTL_ERRLOG(dev, "Band %u is in shut band list\n", band->id);
+		FTL_NOTICELOG(dev, "Band %u is not in shut band list\n", band->id);
 	}
 	band->is_shut = false;
 	band->reloc = true;
