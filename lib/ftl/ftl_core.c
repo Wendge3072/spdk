@@ -301,8 +301,8 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev)
 			(dev->num_blocks_in_band - spdk_divide_round_up(dev->num_blocks_in_band * 16, FTL_BLOCK_SIZE));
 	invalid_ratio = shut_blocks ? 1.0 - (double)dev->valid_blocks_in_bands / shut_blocks : 0.0;
 	double free_band_ratio = (double)dev->num_free / dev->num_bands;
-	if (invalid_ratio > 0.01 || dev->num_free <= limit) {
-		if (invalid_ratio > 0.01) {
+	if (invalid_ratio > 0.1 || dev->num_free <= limit) {
+		if (invalid_ratio > 0.1) {
 			FTL_NOTICELOG(dev, "Invalid Ratio: %.2f, and Free Band Ratio: %.2f, need GC\n", invalid_ratio, free_band_ratio);
 		}
 		FTL_NOTICELOG(dev, "Free Band N: %zu, need GC, poller ite: %zu\n", dev->num_free, dev->poller_ite_cnt);
