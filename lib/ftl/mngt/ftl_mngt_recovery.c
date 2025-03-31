@@ -702,6 +702,7 @@ ftl_mngt_recovery_open_bands_p2l(struct spdk_ftl_dev *dev, struct ftl_mngt_proce
 	 */
 	TAILQ_REMOVE(&pctx->open_bands, band, queue_entry);
 	TAILQ_INSERT_TAIL(&dev->shut_bands, band, queue_entry);
+	band->is_shut = true;
 	dev->num_shut++;
 
 	FTL_NOTICELOG(dev, "Open band recovered, id = %u, seq id %"PRIu64", write offset %"PRIu64"\n",

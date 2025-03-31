@@ -155,7 +155,7 @@ ftl_invalidate_addr(struct spdk_ftl_dev *dev, ftl_addr addr)
 		assert(p2l_map->num_valid > 0);
 		ftl_bitmap_clear(dev->valid_map, addr);
 		p2l_map->num_valid--;
-		if(band->md->state == FTL_BAND_STATE_CLOSED){
+		if(band->is_shut){
 			dev->valid_blocks_in_bands--;
 		}
 	}

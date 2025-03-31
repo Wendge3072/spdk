@@ -113,6 +113,8 @@ _ftl_band_set_closed_cb(struct ftl_band *band, bool valid)
 	assert(band->p2l_map.ref_cnt == 0);
 
 	TAILQ_INSERT_TAIL(&dev->shut_bands, band, queue_entry);
+	assert(band->is_shut == false);
+	band->is_shut = true;
 	dev->valid_blocks_in_bands += band->p2l_map.num_valid;
 	dev->num_shut++;
 	FTL_NOTICELOG(dev, "Band %u closed, valid blk num: %zu, valid block total: %zu, shut band num: %zu\n", band->id, band->p2l_map.num_valid, dev->valid_blocks_in_bands, dev->num_shut);
@@ -206,8 +208,15 @@ void
 ftl_band_set_addr(struct ftl_band *band, uint64_t lba, ftl_addr addr)
 {
 	band->p2l_map.num_valid++;
-	if(band->md->state != FTL_BAND_STATE_OPEN && band->md->state != FTL_BAND_STATE_FULL){
-		FTL_NOTICELOG(band->dev, "Setting bitmap in a shut band %u\n", band->id);
+	if(band->md->state == FTL_BAND_STATE_CLOSED){
+		// 查看band是否在shut_band中
+		if(band->is_shut){
+			band->dev->valid_blocks_in_bands++;
+			FTL_NOTICELOG(band->dev, "Setting bitmap in a shut band %u\n", band->id);
+		}else {
+			FTL_NOTICELOG(band->dev, "Setting bitmap in a Non-shut band %u\n", band->id);
+		}
+		
 	}
 	ftl_bitmap_set(band->dev->valid_map, addr);
 }
@@ -538,7 +547,13 @@ band_start_gc(struct spdk_ftl_dev *dev, struct ftl_band *band)
 
 	TAILQ_REMOVE(&dev->shut_bands, band, queue_entry);
 	dev->num_shut--;
-	dev->valid_blocks_in_bands -= band->p2l_map.num_valid;
+	if(band->is_shut){
+		FTL_ERRLOG(dev, "Band %u is in shut band list\n", band->id);
+		dev->valid_blocks_in_bands -= band->p2l_map.num_valid;
+	}else{
+		FTL_ERRLOG(dev, "Band %u is in shut band list\n", band->id);
+	}
+	band->is_shut = false;
 	band->reloc = true;
 
 	// FTL_DEBUGLOG(dev, "Band to GC, id %u\n", band->id);
@@ -683,6 +698,7 @@ ftl_band_initialize_free_state(struct ftl_band *band)
 {
 	/* All bands start on the shut list during startup, removing it manually here */
 	TAILQ_REMOVE(&band->dev->shut_bands, band, queue_entry);
+	band->is_shut = false;
 	band->dev->num_shut--;
 	_ftl_band_set_free(band);
 }
