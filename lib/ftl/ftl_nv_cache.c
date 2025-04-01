@@ -1377,7 +1377,6 @@ ftl_comp_update_base_dev_stats(struct ftl_nv_cache *nv_cache){
 		nv_cache->comp_base_dev_bw.start_tsc = tsc;
 		nv_cache->comp_base_dev_bw.blocks_submitted = 0;
 	} else if(tsc - nv_cache->comp_base_dev_bw.start_tsc >= nv_cache->comp_base_dev_bw.interval_tsc) {
-		nv_cache->comp_base_dev_bw.start_tsc = tsc;
 		struct comp_base_dev_bw_stats *comp_base_dev_bw = &nv_cache->comp_base_dev_bw;
 		double *ptr;
 		if(spdk_likely(comp_base_dev_bw->count == FTL_NV_CACHE_COMPACTION_SMA_N)){
@@ -1391,9 +1390,10 @@ ftl_comp_update_base_dev_stats(struct ftl_nv_cache *nv_cache){
 			ptr = comp_base_dev_bw->buf + comp_base_dev_bw->count;
 			comp_base_dev_bw->count++;
 		}
-
-		*ptr = (double)comp_base_dev_bw->blocks_submitted * FTL_BLOCK_SIZE / comp_base_dev_bw->interval_tsc;
+		uint64_t tsc_now = spdk_thread_get_last_tsc(spdk_get_thread());
+		*ptr = (double)comp_base_dev_bw->blocks_submitted * FTL_BLOCK_SIZE / (double)(tsc_now - nv_cache->comp_base_dev_bw.start_tsc);
 		comp_base_dev_bw->blocks_submitted = 0;
+		nv_cache->comp_base_dev_bw.start_tsc = tsc_now;
 		comp_base_dev_bw->sum += *ptr;
 		comp_base_dev_bw->avg_bw = comp_base_dev_bw->sum / comp_base_dev_bw->count;
 	}
