@@ -10,6 +10,7 @@
 #include "ftl_core.h"
 #include "ftl_band.h"
 #include "ftl_internal.h"
+#include "ftl_nv_cache.h"
 
 static void
 write_rq_end(struct spdk_bdev_io *bdev_io, bool success, void *arg)
@@ -23,7 +24,8 @@ write_rq_end(struct spdk_bdev_io *bdev_io, bool success, void *arg)
 	rq->success = success;
 	if (spdk_likely(success)){
 		if (rq->owner.compaction){
-			dev->compaction_bw += rq->num_blocks;
+			dev->compaction_bw += rq->num_blocks; // TO Delete
+			dev->nv_cache.comp_base_dev_bw.blocks_submitted += rq->num_blocks;
 		}
 		else{
 			dev->gc_bw += rq->num_blocks;

@@ -218,6 +218,17 @@ struct ftl_nv_cache {
 		double sum;
 	} compaction_recent_bw;
 
+	struct comp_base_dev_bw_stats {
+		double buf[FTL_NV_CACHE_COMPACTION_SMA_N];
+		ptrdiff_t first;
+		size_t count;
+		double sum;
+		uint64_t interval_tsc;
+		uint64_t start_tsc;
+		uint64_t blocks_submitted;
+		double avg_bw;
+	} comp_base_dev_bw;
+
 	struct {
 		uint64_t interval_tsc;
 		uint64_t start_tsc;

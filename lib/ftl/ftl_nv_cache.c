@@ -1367,6 +1367,35 @@ ftl_nv_cache_process_throttle(struct ftl_nv_cache *nv_cache)
 	}
 }
 
+static void
+ftl_comp_update_base_dev_stats(struct ftl_nv_cache *nv_cache){
+	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
+	
+	if (spdk_unlikely(!nv_cache->comp_base_dev_bw.start_tsc)) {
+		nv_cache->comp_base_dev_bw.start_tsc = tsc;
+	} else if(tsc - nv_cache->comp_base_dev_bw.start_tsc >= nv_cache->comp_base_dev_bw.interval_tsc) {
+		nv_cache->comp_base_dev_bw.start_tsc = tsc;
+		struct comp_base_dev_bw_stats *comp_base_dev_bw = &nv_cache->comp_base_dev_bw;
+		double *ptr;
+		if(spdk_likely(comp_base_dev_bw->count == FTL_NV_CACHE_COMPACTION_SMA_N)){
+			ptr = comp_base_dev_bw->buf + comp_base_dev_bw->first;
+			comp_base_dev_bw->first++;
+			if(comp_base_dev_bw->first == FTL_NV_CACHE_COMPACTION_SMA_N){
+				comp_base_dev_bw->first = 0;
+			}
+			comp_base_dev_bw->sum -= *ptr;
+		} else {
+			ptr = comp_base_dev_bw->buf + comp_base_dev_bw->count;
+			comp_base_dev_bw->count++;
+		}
+
+		*ptr = (double)comp_base_dev_bw->blocks_submitted * FTL_BLOCK_SIZE / comp_base_dev_bw->interval_tsc;
+		comp_base_dev_bw->blocks_submitted = 0;
+		comp_base_dev_bw->sum += *ptr;
+		comp_base_dev_bw->avg_bw = comp_base_dev_bw->sum / comp_base_dev_bw->count;
+	}
+}
+
 static void ftl_chunk_open(struct ftl_nv_cache_chunk *chunk);
 
 void
@@ -1406,6 +1435,7 @@ ftl_nv_cache_process(struct spdk_ftl_dev *dev)
 	}
 
 	ftl_nv_cache_process_throttle(nv_cache);
+	ftl_comp_update_base_dev_stats(nv_cache);
 }
 
 static bool
