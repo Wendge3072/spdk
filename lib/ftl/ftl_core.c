@@ -306,7 +306,7 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev, bool *background_gc)
 	bool comp_idle = comp_bw < (double) FTL_COMP_IDLE_THRESHOLD_SEC / spdk_get_ticks_hz();
 	if ((invalid_ratio > 0.015L && dev->reloc->Max_invalidity > 0.1L && comp_idle) || dev->num_free <= limit) {
 		if (invalid_ratio > 0.015L) {
-			FTL_NOTICELOG(dev, "Invalid Ratio: %.2f, and Free Band Ratio: %.2f, need GC\n", invalid_ratio, free_band_ratio);
+			FTL_NOTICELOG(dev, "Invalid Ratio: %.2f, and Free Band Ratio: %.2f, Compaction writing: %.2f MiB/s, need GC\n", invalid_ratio, comp_bw / (spdk_get_ticks_hz() * 1024*1024), free_band_ratio);
 			*background_gc = true;
 		}
 		else{
