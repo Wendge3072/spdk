@@ -40,6 +40,8 @@
 
 /* Interval in miliseconds between write throttle updates. */
 #define FTL_NV_CACHE_THROTTLE_INTERVAL_MS	20
+
+#define FTL_NV_CACHE_BASE_DEV_BW_UPDATE_INTERVAL_MS	500
 /* Throttle modifier proportional gain */
 #define FTL_NV_CACHE_THROTTLE_MODIFIER_KP	20
 /* Min and max modifier values */

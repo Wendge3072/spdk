@@ -201,6 +201,8 @@ ftl_nv_cache_init(struct spdk_ftl_dev *dev)
 
 	nv_cache->throttle.interval_tsc = FTL_NV_CACHE_THROTTLE_INTERVAL_MS *
 					  (spdk_get_ticks_hz() / 1000);
+	nv_cache->comp_base_dev_bw.interval_tsc = FTL_NV_CACHE_BASE_DEV_BW_UPDATE_INTERVAL_MS *
+					  (spdk_get_ticks_hz() / 1000);
 	nv_cache->chunk_free_target = spdk_divide_round_up(nv_cache->chunk_count *
 				      dev->conf.nv_cache.chunk_free_target,
 				      100);
@@ -1373,6 +1375,7 @@ ftl_comp_update_base_dev_stats(struct ftl_nv_cache *nv_cache){
 	
 	if (spdk_unlikely(!nv_cache->comp_base_dev_bw.start_tsc)) {
 		nv_cache->comp_base_dev_bw.start_tsc = tsc;
+		nv_cache->comp_base_dev_bw.blocks_submitted = 0;
 	} else if(tsc - nv_cache->comp_base_dev_bw.start_tsc >= nv_cache->comp_base_dev_bw.interval_tsc) {
 		nv_cache->comp_base_dev_bw.start_tsc = tsc;
 		struct comp_base_dev_bw_stats *comp_base_dev_bw = &nv_cache->comp_base_dev_bw;
