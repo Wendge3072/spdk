@@ -228,6 +228,7 @@ struct ftl_nv_cache {
 		uint64_t interval_tsc;
 		uint64_t start_tsc;
 		uint64_t blocks_submitted;
+		double bw_limit_sec;
 		double avg_bw;
 	} comp_base_dev_bw;
 

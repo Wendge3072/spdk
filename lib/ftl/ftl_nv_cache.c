@@ -203,6 +203,7 @@ ftl_nv_cache_init(struct spdk_ftl_dev *dev)
 					  (spdk_get_ticks_hz() / 1000);
 	nv_cache->comp_base_dev_bw.interval_tsc = FTL_NV_CACHE_BASE_DEV_BW_UPDATE_INTERVAL_MS *
 					  (spdk_get_ticks_hz() / 1000);
+	// nv_cache->comp_base_dev_bw.bw_limit_sec = dev->conf // TODO
 	nv_cache->chunk_free_target = spdk_divide_round_up(nv_cache->chunk_count *
 				      dev->conf.nv_cache.chunk_free_target,
 				      100);

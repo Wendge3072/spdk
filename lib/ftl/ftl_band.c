@@ -572,7 +572,7 @@ band_start_gc(struct spdk_ftl_dev *dev, struct ftl_band *band)
 	TAILQ_REMOVE(&dev->shut_bands, band, queue_entry);
 	dev->num_shut--;
 	if(band->is_shut){
-		FTL_ERRLOG(dev, "Band %u is in shut band list\n", band->id);
+		FTL_NOTICELOG(dev, "Band %u is in shut band list\n", band->id);
 		dev->valid_blocks_in_bands -= band->p2l_map.num_valid;
 	}else{
 		FTL_NOTICELOG(dev, "Band %u is not in shut band list\n", band->id);

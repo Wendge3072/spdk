@@ -122,9 +122,12 @@ struct spdk_ftl_conf {
 
 	/* Enable fast shutdown path */
 	bool					fast_shutdown;
+	
+	uint32_t                bg_gc_threshold;
 
 	/* Hole at bytes 0x79 - 0x7f. */
-	uint8_t					reserved2[7];
+	// uint8_t					reserved2[7];
+	uint8_t					reserved2[3];
 
 	/*
 	 * The size of spdk_ftl_conf according to the caller of this library is used for ABI
