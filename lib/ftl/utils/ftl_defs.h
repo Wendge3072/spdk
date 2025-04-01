@@ -13,7 +13,8 @@
 #endif
 
 #ifndef MiB
-#define MiB (1ULL << 20)
+#define 
+MiB (1ULL << 20)
 #endif
 
 #ifndef GiB

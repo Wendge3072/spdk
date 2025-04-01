@@ -11,7 +11,9 @@
         "unordered_map": "c",
         "vector": "c",
         "bitset": "c",
-        "set": "c"
+        "set": "c",
+        "ftl_internal.h": "c",
+        "ftl_reloc.h": "c"
     },
     "cmake.ignoreCMakeListsMissing": true
 }
