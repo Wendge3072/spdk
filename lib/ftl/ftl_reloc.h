@@ -29,7 +29,7 @@
 
 #define FTL_RELOC_THROTTLE_INTERVAL_MS 50
 
-#define FTL_COMP_IDLE_THRESHOLD_SEC (512 * MiB)
+#define FTL_COMP_IDLE_THRESHOLD_SEC (512 * (1ULL << 20))
 
 struct ftl_reloc;
 struct ftl_band_reloc;
