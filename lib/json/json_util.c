@@ -302,11 +302,13 @@ _json_decode_object(const struct spdk_json_val *values,
 	bool *seen;
 
 	if (values == NULL || values->type != SPDK_JSON_VAL_OBJECT_BEGIN) {
+		printf("--1--\n");
 		return -1;
 	}
 
 	seen = calloc(sizeof(bool), num_decoders);
 	if (seen == NULL) {
+		printf("--2--\n");
 		return -1;
 	}
 
@@ -326,11 +328,13 @@ _json_decode_object(const struct spdk_json_val *values,
 					/* duplicate field name */
 					invalid = true;
 					SPDK_JSON_DEBUG("Duplicate key '%s'\n", dec->name);
+					SPDK_NOTICELOG("Duplicate key '%.*s'\n", name->len, (char *)name->start);
 				} else {
 					seen[decidx] = true;
 					if (dec->decode_func(v, field)) {
 						invalid = true;
 						SPDK_JSON_DEBUG("Decoder failed to decode key '%s'\n", dec->name);
+						SPDK_NOTICELOG("Decoder failed to decode key '%.*s'\n", name->len, (char *)name->start);
 						/* keep going to fill out any other valid keys */
 					}
 				}
@@ -341,6 +345,7 @@ _json_decode_object(const struct spdk_json_val *values,
 		if (!relaxed && !found) {
 			invalid = true;
 			SPDK_JSON_DEBUG("Decoder not found for key '%.*s'\n", name->len, (char *)name->start);
+			SPDK_NOTICELOG("Decoder not found for key '%.*s'\n", name->len, (char *)name->start);
 		}
 
 		i += 1 + spdk_json_val_len(v);
@@ -350,6 +355,7 @@ _json_decode_object(const struct spdk_json_val *values,
 		if (!decoders[decidx].optional && !seen[decidx]) {
 			/* required field is missing */
 			invalid = true;
+			SPDK_NOTICELOG("Required key '%s' not found\n", decoders[decidx].name);
 			break;
 		}
 	}
