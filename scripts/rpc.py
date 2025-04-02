@@ -16,7 +16,7 @@ except ImportError:
 sys.path.append(os.path.dirname(__file__) + '/../python')
 
 import spdk.rpc as rpc  # noqa
-importlib.reload(rpc.bdev)
+print(rpc.__file__)
 from spdk.rpc.client import print_dict, print_json, JSONRPCException  # noqa
 from spdk.rpc.helpers import deprecated_aliases  # noqa
 
