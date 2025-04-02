@@ -1373,6 +1373,7 @@ def bdev_ftl_set_bggc_comp_threshold(client, name, threshold):
     """
     params = {'name': name,
               'threshold': threshold}
+    print("calling bdev_ftl_set_bggc_comp_threshold")
 
     return client.call('bdev_ftl_set_bggc_comp_threshold', params)
 
