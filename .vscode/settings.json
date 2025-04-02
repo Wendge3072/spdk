@@ -13,7 +13,11 @@
         "bitset": "c",
         "set": "c",
         "ftl_internal.h": "c",
-        "ftl_reloc.h": "c"
+        "ftl_reloc.h": "c",
+        "__bit_reference": "cpp",
+        "__locale": "cpp",
+        "variant": "cpp",
+        "istream": "cpp"
     },
     "cmake.ignoreCMakeListsMissing": true
 }

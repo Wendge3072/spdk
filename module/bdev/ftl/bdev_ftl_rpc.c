@@ -116,6 +116,42 @@ out:
 }
 SPDK_RPC_REGISTER("bdev_ftl_create", rpc_bdev_ftl_create, SPDK_RPC_RUNTIME)
 
+struct rpc_bggc_comp_threshold {
+	char *name;
+	uint32_t bggc_comp_threshold;
+};
+
+static const struct spdk_json_object_decoder rpc_bggc_comp_threshold_decoders[] = {
+	{"name", offsetof(struct rpc_bggc_comp_threshold, name), spdk_json_decode_string},
+	{"bggc_comp_threshold", offsetof(struct rpc_bggc_comp_threshold, bggc_comp_threshold), spdk_json_decode_uint32},
+};
+
+static void
+rpc_bdev_ftl_set_bggc_comp_threshold_cb(void *cb_arg, int bdeverrno)
+{
+	struct spdk_jsonrpc_request *request = cb_arg;
+
+	spdk_jsonrpc_send_bool_response(request, bdeverrno == 0);
+}
+
+static void
+rpc_bdev_ftl_set_bggc_comp_threshold(struct spdk_jsonrpc_request *request,
+			const struct spdk_json_val *params)
+{
+	struct rpc_bggc_comp_threshold attrs = {};
+	if (spdk_json_decode_object(params, rpc_bggc_comp_threshold_decoders,
+				    SPDK_COUNTOF(rpc_bggc_comp_threshold_decoders),
+				    &attrs)) {
+		spdk_jsonrpc_send_error_response(request, SPDK_JSONRPC_ERROR_INVALID_PARAMS,
+						 "Invalid parameters");
+		goto invalid;
+	}
+	bdev_ftl_set_bggc_comp_threshold(attrs.name, attrs.bggc_comp_threshold, rpc_bdev_ftl_set_bggc_comp_threshold_cb, request);
+invalid:
+	free(attrs.name);
+}
+SPDK_RPC_REGISTER("bdev_ftl_set_bggc_comp_threshold", rpc_bdev_ftl_set_bggc_comp_threshold, SPDK_RPC_RUNTIME)
+
 static void
 rpc_bdev_ftl_load(struct spdk_jsonrpc_request *request,
 		  const struct spdk_json_val *params)

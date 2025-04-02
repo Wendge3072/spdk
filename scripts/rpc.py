@@ -2032,6 +2032,16 @@ Format: 'user:u1 secret:s1 muser:mu1 msecret:ms1,user:u2 secret:s2 muser:mu2 mse
     p.add_argument('-f', '--fast-shutdown', help="Enable fast shutdown", action='store_true')
     p.set_defaults(func=bdev_ftl_create)
 
+    def bdev_ftl_set_bggc_comp_threshold(args):
+        print_dict(rpc.bdev.bdev_ftl_set_bggc_comp_threshold(args.client,
+                                                             name=args.name,
+                                                             threshold=args.threshold))
+    
+    p = subparsers.add_parser('bdev_ftl_set_bggc_comp_threshold', help='Set FTL bdev background garbage collection compaction threshold')
+    p.add_argument('-b', '--name', help="Name of the bdev", required=True)
+    p.add_argument('-t', '--threshold', help='Background garbage collection compaction threshold (MiB/s)', required=True, type=int)
+    p.set_defaults(func=bdev_ftl_set_bggc_comp_threshold)
+
     def bdev_ftl_load(args):
         print_dict(rpc.bdev.bdev_ftl_load(args.client,
                                           name=args.name,

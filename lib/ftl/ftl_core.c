@@ -296,23 +296,23 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev, bool *background_gc)
 {
 	size_t limit = ftl_get_limit(dev, SPDK_FTL_LIMIT_START);
 
-	if (dev->num_free <= limit) {
-	// double invalid_ratio = 0.0;
-	// uint64_t shut_blocks = dev->num_shut * 
-	// 		(dev->num_blocks_in_band - spdk_divide_round_up(dev->num_blocks_in_band * 16, FTL_BLOCK_SIZE));
-	// invalid_ratio = shut_blocks ? 1.0 - (double) dev->valid_blocks_in_bands / shut_blocks : 0.0;
-	// double free_band_ratio = (double) dev->num_free / dev->num_bands;
-	// double comp_bw = dev->nv_cache.comp_base_dev_bw.avg_bw;
-	// bool comp_idle = comp_bw < (double) FTL_COMP_IDLE_THRESHOLD_SEC / spdk_get_ticks_hz();
-	// if ((invalid_ratio > 0.015L && dev->reloc->Max_invalidity > 0.1L && comp_idle) || dev->num_free <= limit) {
-	// 	if (invalid_ratio > 0.015L) {
-	// 		FTL_NOTICELOG(dev, "Invalid Ratio: %.2f, and Free Band Ratio: %.2f, Compaction writing: %.2f MiB/s, need GC\n", invalid_ratio, free_band_ratio, comp_bw / (spdk_get_ticks_hz() * 1024*1024));
-	// 		*background_gc = true;
-	// 	}
-	// 	else{
-	// 		FTL_NOTICELOG(dev, "Free Band N: %zu, need GC, poller ite: %zu\n", dev->num_free, dev->poller_ite_cnt);
-	// 		*background_gc = false;
-	// 	}
+	// if (dev->num_free <= limit) {
+	double invalid_ratio = 0.0;
+	uint64_t shut_blocks = dev->num_shut * 
+			(dev->num_blocks_in_band - spdk_divide_round_up(dev->num_blocks_in_band * 16, FTL_BLOCK_SIZE));
+	invalid_ratio = shut_blocks ? 1.0 - (double) dev->valid_blocks_in_bands / shut_blocks : 0.0;
+	double free_band_ratio = (double) dev->num_free / dev->num_bands;
+	double comp_bw = dev->nv_cache.comp_base_dev_bw.avg_bw;
+	bool comp_idle = comp_bw < (double) FTL_COMP_IDLE_THRESHOLD_SEC / spdk_get_ticks_hz();
+	if ((invalid_ratio > 0.015L && dev->reloc->Max_invalidity > 0.1L && comp_idle) || dev->num_free <= limit) {
+		if (invalid_ratio > 0.015L) {
+			FTL_NOTICELOG(dev, "Invalid Ratio: %.2f, and Free Band Ratio: %.2f, Compaction writing: %.2f MiB/s, need GC\n", invalid_ratio, free_band_ratio, comp_bw / (spdk_get_ticks_hz() * 1024*1024));
+			*background_gc = true;
+		}
+		else{
+			FTL_NOTICELOG(dev, "Free Band N: %zu, need GC, poller ite: %zu\n", dev->num_free, dev->poller_ite_cnt);
+			*background_gc = false;
+		}
 		return true;
 	}
 
@@ -806,6 +806,13 @@ spdk_ftl_dev_set_fast_shutdown(struct spdk_ftl_dev *dev, bool fast_shutdown)
 {
 	assert(dev);
 	dev->conf.fast_shutdown = fast_shutdown;
+}
+
+void
+spdk_ftl_set_bggc_comp_threshold(struct spdk_ftl_dev *dev, uint32_t bggc_comp_threshold){
+	assert(dev);
+	dev->conf.bg_gc_threshold = bggc_comp_threshold;
+	FTL_NOTICELOG(dev, "Set background GC/Compaction threshold to %u\n", bggc_comp_threshold);
 }
 
 void

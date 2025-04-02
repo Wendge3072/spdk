@@ -316,6 +316,14 @@ size_t spdk_ftl_io_size(void);
  */
 void spdk_ftl_dev_set_fast_shutdown(struct spdk_ftl_dev *dev, bool fast_shutdown);
 
+/**
+ * Set the background garbage collection threshold.
+ *
+ * \param dev Device
+ * \param bggc_comp_threshold Background GC compaction threshold
+ */
+void spdk_ftl_set_bggc_comp_threshold(struct spdk_ftl_dev *dev, uint32_t bggc_comp_threshold);
+
 /*
  * Returns current FTL I/O statistics.
  *
