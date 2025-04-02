@@ -328,13 +328,13 @@ _json_decode_object(const struct spdk_json_val *values,
 					/* duplicate field name */
 					invalid = true;
 					SPDK_JSON_DEBUG("Duplicate key '%s'\n", dec->name);
-					SPDK_NOTICELOG("Duplicate key '%.*s'\n", name->len, (char *)name->start);
+					SPDK_NOTICELOG("Duplicate key '%s'\n", dec->name);
 				} else {
 					seen[decidx] = true;
 					if (dec->decode_func(v, field)) {
 						invalid = true;
 						SPDK_JSON_DEBUG("Decoder failed to decode key '%s'\n", dec->name);
-						SPDK_NOTICELOG("Decoder failed to decode key '%.*s'\n", name->len, (char *)name->start);
+						SPDK_NOTICELOG("Decoder failed to decode key '%s'\n", dec->name);
 						/* keep going to fill out any other valid keys */
 					}
 				}
