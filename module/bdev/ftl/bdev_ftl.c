@@ -484,7 +484,7 @@ not_found:
 
 void
 bdev_ftl_set_bggc_comp_threshold(const char *name, uint32_t bggc_comp_threshold,
-			ftl_bdev_thread_fn cb_fn, void *cb_arg)
+			spdk_ftl_fn cb_fn, void *cb_arg)
 {
 	struct spdk_bdev_desc *ftl_bdev_desc;
 	struct spdk_bdev *bdev;
