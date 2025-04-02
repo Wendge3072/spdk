@@ -2033,6 +2033,7 @@ Format: 'user:u1 secret:s1 muser:mu1 msecret:ms1,user:u2 secret:s2 muser:mu2 mse
     p.set_defaults(func=bdev_ftl_create)
 
     def bdev_ftl_set_bggc_comp_threshold(args):
+        print("calling bdev_ftl_set_bggc_comp_threshold 1")
         print_dict(rpc.bdev.bdev_ftl_set_bggc_comp_threshold(args.client,
                                                              name=args.name,
                                                              threshold=args.threshold))
