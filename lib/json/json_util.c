@@ -311,7 +311,7 @@ _json_decode_object(const struct spdk_json_val *values,
 		printf("--2--\n");
 		return -1;
 	}
-
+	printf("--3--\n");
 	for (i = 0; i < values->len;) {
 		const struct spdk_json_val *name = &values[i + 1];
 		const struct spdk_json_val *v = &values[i + 2];
