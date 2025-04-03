@@ -291,6 +291,16 @@ ftl_submit_read(struct ftl_io *io)
 	}
 }
 
+static double
+ftl_get_bggc_threshold(struct spdk_ftl_dev *dev)
+{
+	if (dev->conf.bg_gc_threshold > 0) {
+		return (double) dev->conf.bg_gc_threshold * MiB / spdk_get_ticks_hz();
+	}
+
+	return 0.0;
+}
+
 bool
 ftl_needs_reloc(struct spdk_ftl_dev *dev, bool *background_gc)
 {
@@ -303,7 +313,7 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev, bool *background_gc)
 	invalid_ratio = shut_blocks ? 1.0 - (double) dev->valid_blocks_in_bands / shut_blocks : 0.0;
 	double free_band_ratio = (double) dev->num_free / dev->num_bands;
 	double comp_bw = dev->nv_cache.comp_base_dev_bw.avg_bw;
-	bool comp_idle = comp_bw < (double) FTL_COMP_IDLE_THRESHOLD_SEC / spdk_get_ticks_hz();
+	bool comp_idle = comp_bw < ftl_get_bggc_threshold();
 	if ((invalid_ratio > 0.015L && dev->reloc->Max_invalidity > 0.1L && comp_idle) || dev->num_free <= limit) {
 		if (invalid_ratio > 0.015L) {
 			FTL_NOTICELOG(dev, "Invalid Ratio: %.2f, and Free Band Ratio: %.2f, Compaction writing: %.2f MiB/s, need GC\n", invalid_ratio, free_band_ratio, comp_bw / (spdk_get_ticks_hz() * 1024*1024));
@@ -745,7 +755,7 @@ void ftl_print_per_sec(struct spdk_ftl_dev *dev){
 		FTL_NOTICELOG(dev, "User writing BandWidth: %.2f MiB/s\n", (double)dev->nv_cache.n_submit_blks * FTL_BLOCK_SIZE / (1024*1024));
 		FTL_NOTICELOG(dev, "Compaction Writing: %.2f MiB/s\n", (double)dev->compaction_bw * FTL_BLOCK_SIZE / (1024*1024));
 		FTL_NOTICELOG(dev, "GC Writing: %.2f MiB/s\n", (double)dev->gc_bw * FTL_BLOCK_SIZE / (1024*1024));
-		FTL_NOTICELOG(dev, "GC THRESHOLD: %u\n", dev->conf.bg_gc_threshold);
+		// FTL_NOTICELOG(dev, "GC THRESHOLD: %u\n", dev->conf.bg_gc_threshold);
 		dev->nv_cache.n_submit_blks = 0;
 		dev->poller_ite_cnt = 0;
 		dev->compaction_bw = 0;

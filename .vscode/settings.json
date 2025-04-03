@@ -17,7 +17,8 @@
         "__bit_reference": "cpp",
         "__locale": "cpp",
         "variant": "cpp",
-        "istream": "cpp"
+        "istream": "cpp",
+        "ftl_core.h": "c"
     },
     "cmake.ignoreCMakeListsMissing": true
 }
