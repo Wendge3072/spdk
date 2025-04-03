@@ -745,6 +745,7 @@ void ftl_print_per_sec(struct spdk_ftl_dev *dev){
 		FTL_NOTICELOG(dev, "User writing BandWidth: %.2f MiB/s\n", (double)dev->nv_cache.n_submit_blks * FTL_BLOCK_SIZE / (1024*1024));
 		FTL_NOTICELOG(dev, "Compaction Writing: %.2f MiB/s\n", (double)dev->compaction_bw * FTL_BLOCK_SIZE / (1024*1024));
 		FTL_NOTICELOG(dev, "GC Writing: %.2f MiB/s\n", (double)dev->gc_bw * FTL_BLOCK_SIZE / (1024*1024));
+		FTL_NOTICELOG(dev, "GC THRESHOLD: %u\n", dev->conf.bg_gc_threshold);
 		dev->nv_cache.n_submit_blks = 0;
 		dev->poller_ite_cnt = 0;
 		dev->compaction_bw = 0;
@@ -812,7 +813,7 @@ void
 spdk_ftl_set_bggc_comp_threshold(struct spdk_ftl_dev *dev, uint32_t bggc_comp_threshold){
 	assert(dev);
 	dev->conf.bg_gc_threshold = bggc_comp_threshold;
-	FTL_NOTICELOG(dev, "Set background GC/Compaction threshold to %u\n", bggc_comp_threshold);
+	FTL_NOTICELOG(dev, "Set background GC Compaction threshold to %u\n", bggc_comp_threshold);
 }
 
 void

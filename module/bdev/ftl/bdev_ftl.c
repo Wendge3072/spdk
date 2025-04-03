@@ -509,6 +509,7 @@ bdev_ftl_set_bggc_comp_threshold(const char *name, uint32_t bggc_comp_threshold,
 	spdk_ftl_set_bggc_comp_threshold(ftl->dev, bggc_comp_threshold);
 
 	spdk_bdev_close(ftl_bdev_desc);
+	cb_fn(cb_arg, 0);
 	return;
 bdev_opened:
 	spdk_bdev_close(ftl_bdev_desc);
