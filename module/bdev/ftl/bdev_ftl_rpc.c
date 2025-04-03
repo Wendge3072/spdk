@@ -123,7 +123,7 @@ struct rpc_bggc_comp_threshold {
 
 static const struct spdk_json_object_decoder rpc_bggc_comp_threshold_decoders[] = {
 	{"name", offsetof(struct rpc_bggc_comp_threshold, name), spdk_json_decode_string},
-	{"bggc_comp_threshold", offsetof(struct rpc_bggc_comp_threshold, bggc_comp_threshold), spdk_json_decode_uint32},
+	{"threshold", offsetof(struct rpc_bggc_comp_threshold, bggc_comp_threshold), spdk_json_decode_uint32},
 };
 
 static void
