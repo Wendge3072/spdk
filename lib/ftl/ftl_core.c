@@ -743,12 +743,12 @@ void ftl_print_per_sec(struct spdk_ftl_dev *dev){
 		uint64_t shut_blocks = dev->num_shut * 
 			(dev->num_blocks_in_band - spdk_divide_round_up(dev->num_blocks_in_band * 16, FTL_BLOCK_SIZE));
 		double invalid_ratio = shut_blocks ? 1.0 - (double)dev->valid_blocks_in_bands / shut_blocks : 0.0;
-		uint64_t valid_blocks_in_bands = 0;
-		struct ftl_band *band;
-		TAILQ_FOREACH(band, &dev->shut_bands, queue_entry){
-			valid_blocks_in_bands += band->p2l_map.num_valid;
-		}
-		FTL_NOTICELOG(dev, "Valid Block Num: %zu, actual: %zu\n", dev->valid_blocks_in_bands, valid_blocks_in_bands);
+		// uint64_t valid_blocks_in_bands = 0;
+		// struct ftl_band *band;
+		// TAILQ_FOREACH(band, &dev->shut_bands, queue_entry){
+		// 	valid_blocks_in_bands += band->p2l_map.num_valid;
+		// }
+		// FTL_NOTICELOG(dev, "Valid Block Num: %zu, actual: %zu\n", dev->valid_blocks_in_bands, valid_blocks_in_bands);
 		FTL_NOTICELOG(dev, "Invalid Block Ratio: %.2f %%\n", 100.0 * invalid_ratio);
 		FTL_NOTICELOG(dev, "Poller Free Bands: %zu, poller cnts: %zu\n", dev->num_free, dev->poller_ite_cnt);
 		FTL_NOTICELOG(dev, "User writing BandWidth: %.2f MiB/s\n", (double)dev->nv_cache.n_submit_blks * FTL_BLOCK_SIZE / (1024*1024));
