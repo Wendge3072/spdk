@@ -195,7 +195,6 @@ struct spdk_ftl_dev {
 	uint64_t poller_ite_cnt;
 	uint64_t compaction_bw;
 	uint64_t gc_bw;
-	uint64_t search_physical_band_tsc;
 	
 };
 

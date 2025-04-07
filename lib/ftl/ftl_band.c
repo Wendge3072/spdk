@@ -667,7 +667,6 @@ ftl_band_search_next_to_reloc(struct spdk_ftl_dev *dev)
 	}
 	uint64_t tsc_e = spdk_thread_get_last_tsc(spdk_get_thread());
 	tsc_e -= tsc_s;
-	dev->search_physical_band_tsc += tsc_e;
 	if (FTL_BAND_PHYS_ID_INVALID != phys_id) {
 		// FTL_DEBUGLOG(dev, "Band physical id %"PRIu64" to GC\n", phys_id);
 		FTL_NOTICELOG(dev, "Band physical id %"PRIu64" to GC, and GC band search time %.2f us, poller ite: %zu\n", phys_id, (double)(tsc_e * 1000000 / spdk_get_ticks_hz()), dev->poller_ite_cnt);
