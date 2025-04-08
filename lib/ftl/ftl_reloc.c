@@ -681,6 +681,15 @@ ftl_reloc_is_halted(const struct ftl_reloc *reloc)
 	return true;
 }
 
+static double
+band_invalidity(struct ftl_band *band)
+{
+	double valid = band->p2l_map.num_valid;
+	double count = ftl_band_user_blocks(band);
+
+	return 1.0 - (valid / count);
+}
+
 static void
 ftl_reloc_update(struct ftl_reloc *reloc){
 	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
@@ -689,6 +698,11 @@ ftl_reloc_update(struct ftl_reloc *reloc){
 	} else if(tsc - reloc->rThrottle.rStart_tsc >= reloc->rThrottle.rInterval_tsc){
 		// ftl_throttle_update(reloc->dev);
 		reloc->Max_invalidity = ftl_update_phygrp_invalid(reloc->dev);
+		FTL_NOTOCELOG(reloc->dev, "Max invalidity: %.2f\n", reloc->Max_invalidity);
+		if (reloc->dev->sb_shm->gc_info.current_banx_id != FTL_BAND_ID_INVALID){
+			reloc->Max_invalidity = max(reloc->Max_invalidity, band_invalidity(dev->bands[reloc->dev->sb_shm->gc_info.current_band_id]));
+			FTL_NOTICELOG(reloc->dev, "Max invalidity: %.2f\n", reloc->Max_invalidity);
+		}
 		reloc->rThrottle.rStart_tsc = tsc;
 	}
 }

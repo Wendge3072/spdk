@@ -18,7 +18,9 @@
         "__locale": "cpp",
         "variant": "cpp",
         "istream": "cpp",
-        "ftl_core.h": "c"
+        "ftl_core.h": "c",
+        "event.h": "c",
+        "stdinc.h": "c"
     },
     "cmake.ignoreCMakeListsMissing": true
 }
