@@ -3206,6 +3206,7 @@ usage(const char *program_name)
 	printf("options:\n");
 	printf(" -r <path>  RPC connect address (default: /var/tmp/spdk.sock)\n");
 	printf(" -h         show this usage\n");
+	printf(" -f <path>  Save output to file\n");
 }
 
 static int
