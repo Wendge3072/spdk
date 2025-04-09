@@ -3327,7 +3327,8 @@ main(int argc, char **argv)
 			return op == 'h' ? 0 : 1;
 		}
 	}
-	printf("Log writting to file: %s\n", g_output_file);
+	while(1)
+		printf("Log writting to file: %s\n", g_output_file);
 	g_rpc_client = spdk_jsonrpc_client_connect(socket, socket[0] == '/' ? AF_UNIX : AF_INET);
 	if (!g_rpc_client) {
 		fprintf(stderr, "spdk_jsonrpc_client_connect() failed: %d\n", errno);
