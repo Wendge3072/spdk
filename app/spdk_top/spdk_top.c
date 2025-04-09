@@ -3410,7 +3410,8 @@ main(int argc, char **argv)
 
 	rc = wait_init(&data_thread);
 	if (!rc) {
-		show_stats(&data_thread);
+		// show_stats(&data_thread);
+		while(1);
 	}
 
 	finish(0);

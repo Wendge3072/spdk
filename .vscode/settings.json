@@ -23,5 +23,6 @@
         "stdinc.h": "c",
         "print": "c"
     },
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
+    "commentTranslate.hover.enabled": false
 }
