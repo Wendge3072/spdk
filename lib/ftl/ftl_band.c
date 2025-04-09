@@ -484,10 +484,11 @@ is_band_relocateable(struct ftl_band *band)
 	return true;
 }
 
-static void
+static bool
 get_band_phys_info(struct spdk_ftl_dev *dev, uint64_t phys_id,
 		   double *invalidity, double *wr_cnt)
 {
+	bool relocatable = true;
 	struct ftl_band *band;
 	uint64_t band_id = phys_id * dev->num_logical_bands_in_physical;
 
@@ -502,6 +503,7 @@ get_band_phys_info(struct spdk_ftl_dev *dev, uint64_t phys_id,
 		*wr_cnt += band->md->wr_cnt;
 
 		if (!is_band_relocateable(band)) {
+			relocatable = false;
 			continue;
 		}
 
@@ -510,6 +512,7 @@ get_band_phys_info(struct spdk_ftl_dev *dev, uint64_t phys_id,
 
 	*invalidity /= dev->num_logical_bands_in_physical;
 	*wr_cnt /= dev->num_logical_bands_in_physical;
+	return relocatable;
 }
 
 static bool
@@ -550,7 +553,7 @@ double ftl_update_phygrp_invalid(struct spdk_ftl_dev *dev){
 	struct ftl_band *band;
 	for (i = 0; i < band_count; i += phys_count) {
 		band = &dev->bands[i];
-		get_band_phys_info(dev, band->phys_id, &invalidity, &wr_cnt);
+		if (!get_band_phys_info(dev, band->phys_id, &invalidity, &wr_cnt)) continue;
 		if (invalidity != 0.0L) {
 			if (phys_id == FTL_BAND_PHYS_ID_INVALID ||
 			    band_cmp(invalidity, wr_cnt, max_invalidity, max_wr_cnt,
@@ -667,6 +670,7 @@ ftl_band_search_next_to_reloc(struct spdk_ftl_dev *dev)
 	}
 	uint64_t tsc_e = spdk_thread_get_last_tsc(spdk_get_thread());
 	tsc_e -= tsc_s;
+
 	if (FTL_BAND_PHYS_ID_INVALID != phys_id) {
 		// FTL_DEBUGLOG(dev, "Band physical id %"PRIu64" to GC\n", phys_id);
 		FTL_NOTICELOG(dev, "Band physical id %"PRIu64" to GC, and GC band search time %.2f us, poller ite: %zu\n", phys_id, (double)(tsc_e * 1000000 / spdk_get_ticks_hz()), dev->poller_ite_cnt);
