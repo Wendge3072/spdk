@@ -696,7 +696,6 @@ ftl_reloc_update(struct ftl_reloc *reloc){
 	if(spdk_unlikely(!reloc->rThrottle.rStart_tsc)){
 		reloc->rThrottle.rStart_tsc = tsc;
 	} else if(tsc - reloc->rThrottle.rStart_tsc >= reloc->rThrottle.rInterval_tsc){
-		// ftl_throttle_update(reloc->dev);
 		reloc->Max_invalidity = ftl_update_phygrp_invalid(reloc->dev);
 		if (reloc->dev->sb_shm->gc_info.current_band_id != FTL_BAND_ID_INVALID){
 			struct ftl_band *band = &reloc->dev->bands[reloc->dev->sb_shm->gc_info.current_band_id];
