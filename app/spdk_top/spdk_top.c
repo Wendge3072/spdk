@@ -3314,7 +3314,7 @@ main(int argc, char **argv)
 	char *g_output_file = NULL;
 	pthread_t data_thread;
 
-	while ((op = getopt(argc, argv, "r:h:f")) != -1) {
+	while ((op = getopt(argc, argv, "f:r:h")) != -1) {
 		switch (op) {
 		case 'r':
 			socket = optarg;
@@ -3322,7 +3322,6 @@ main(int argc, char **argv)
 		case 'f':
 			g_output_file = optarg;
 			printf("Log writting to file: %s\n", optarg);
-			return 0;
 			break;
 		default:
 			usage(argv[0]);
@@ -3330,6 +3329,8 @@ main(int argc, char **argv)
 		}
 	}
 	
+	return 0;
+
 	g_rpc_client = spdk_jsonrpc_client_connect(socket, socket[0] == '/' ? AF_UNIX : AF_INET);
 	if (!g_rpc_client) {
 		fprintf(stderr, "spdk_jsonrpc_client_connect() failed: %d\n", errno);
