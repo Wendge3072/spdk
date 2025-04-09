@@ -3314,6 +3314,9 @@ main(int argc, char **argv)
 	char *g_output_file = NULL;
 	pthread_t data_thread;
 
+	// define file descripter
+	int g_output_fd = -1;
+
 	while ((op = getopt(argc, argv, "r:f:h")) != -1) {
 		switch (op) {
 		case 'r':
@@ -3321,14 +3324,22 @@ main(int argc, char **argv)
 			break;
 		case 'f':
 			g_output_file = optarg;
-			printf("Log writting to file: %s\n", optarg);
 			break;
 		default:
 			usage(argv[0]);
 			return op == 'h' ? 0 : 1;
 		}
 	}
-	
+	if (g_output_file) {
+		g_output_fd = open(g_output_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (g_output_fd < 0) {
+			fprintf(stderr, "Unable to open file %s: %s\n", g_output_file, strerror(errno));
+			return 1;
+		}
+	}
+
+	fprintf(g_output_fd, "SPDK Performance Monitor\n");
+
 	return 0;
 
 	g_rpc_client = spdk_jsonrpc_client_connect(socket, socket[0] == '/' ? AF_UNIX : AF_INET);
