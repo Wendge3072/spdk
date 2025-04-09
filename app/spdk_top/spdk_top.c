@@ -3314,7 +3314,7 @@ main(int argc, char **argv)
 	char *g_output_file = NULL;
 	pthread_t data_thread;
 
-	while ((op = getopt(argc, argv, "r:h")) != -1) {
+	while ((op = getopt(argc, argv, "r:h:f")) != -1) {
 		switch (op) {
 		case 'r':
 			socket = optarg;
