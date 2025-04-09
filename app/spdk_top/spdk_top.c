@@ -3321,8 +3321,8 @@ main(int argc, char **argv)
 			break;
 		case 'f':
 			g_output_file = optarg;
-			while(1)
-				printf("Log writting to file: %s\n", optarg);
+			printf("Log writting to file: %s\n", optarg);
+			return 0;
 			break;
 		default:
 			usage(argv[0]);
