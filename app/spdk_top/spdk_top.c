@@ -1418,8 +1418,8 @@ draw_thread_tab_row(uint64_t current_row, uint8_t item_index)
 	}
 	if (g_output_fd > 0){
 		dprintf(g_output_fd, "%s\t", g_threads_info[current_row].name);
-		dprintf(g_output_fd, "%d\t", core_str);
-		dprintf(g_output_fd, "%ld\t", cpu_usage);
+		dprintf(g_output_fd, "%s\t", core_str);
+		dprintf(g_output_fd, "%s\t", cpu_usage);
 		dprintf(g_output_fd, "%s\n", status_str);
 	}
 }
