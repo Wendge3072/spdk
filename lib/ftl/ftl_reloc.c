@@ -699,7 +699,7 @@ ftl_reloc_update(struct ftl_reloc *reloc){
 		// ftl_throttle_update(reloc->dev);
 		reloc->Max_invalidity = ftl_update_phygrp_invalid(reloc->dev);
 		if (reloc->dev->sb_shm->gc_info.current_band_id != FTL_BAND_ID_INVALID){
-			struct ftl_band *band = reloc->dev->bands[reloc->dev->sb_shm->gc_info.current_band_id];
+			struct ftl_band *band = &reloc->dev->bands[reloc->dev->sb_shm->gc_info.current_band_id];
 			if (band_invalidity(band) > reloc->Max_invalidity){
 				reloc->Max_invalidity = band_invalidity(band);
 			}
