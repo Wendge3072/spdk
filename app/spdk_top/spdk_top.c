@@ -3338,7 +3338,11 @@ main(int argc, char **argv)
 		}
 	}
 
-	fprintf(g_output_fd, "SPDK Performance Monitor\n");
+	// print hello to the file
+	if (g_output_fd >= 0) {
+		dprintf(g_output_fd, "Hello from SPDK\n");
+	}
+
 
 	return 0;
 
