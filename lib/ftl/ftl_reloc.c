@@ -698,8 +698,11 @@ ftl_reloc_update(struct ftl_reloc *reloc){
 	} else if(tsc - reloc->rThrottle.rStart_tsc >= reloc->rThrottle.rInterval_tsc){
 		// ftl_throttle_update(reloc->dev);
 		reloc->Max_invalidity = ftl_update_phygrp_invalid(reloc->dev);
-		if (reloc->dev->sb_shm->gc_info.current_banx_id != FTL_BAND_ID_INVALID){
-			reloc->Max_invalidity = max(reloc->Max_invalidity, band_invalidity(dev->bands[reloc->dev->sb_shm->gc_info.current_band_id]));
+		if (reloc->dev->sb_shm->gc_info.current_band_id != FTL_BAND_ID_INVALID){
+			struct ftl_band *band = reloc->dev->bands[reloc->dev->sb_shm->gc_info.current_band_id];
+			if (band_invalidity(band) > reloc->Max_invalidity){
+				reloc->Max_invalidity = band_invalidity(band);
+			}
 		}
 		reloc->rThrottle.rStart_tsc = tsc;
 	}
