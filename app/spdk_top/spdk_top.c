@@ -723,10 +723,33 @@ log_thread_cpu_usage(uint64_t i, int cpu_idx)
 	return result;
 }
 
+static void
+get_timestamp_prefix(char *buf, int buf_size)
+{
+	struct tm *info;
+	char date[24];
+	struct timespec ts;
+	long usec;
+
+	clock_gettime(CLOCK_REALTIME, &ts);
+	info = localtime(&ts.tv_sec);
+	usec = ts.tv_nsec / 1000;
+	if (info == NULL) {
+		snprintf(buf, buf_size, "[%s.%06ld] ", "unknown date", usec);
+		return;
+	}
+
+	strftime(date, sizeof(date), "%Y-%m-%d %H:%M:%S", info);
+	snprintf(buf, buf_size, "[%s.%06ld] ", date, usec);
+}
+
 static void log_thread_info(uint64_t i){
-	dprintf(g_output_fd, "%s\t", g_threads_info[i].name);
-	dprintf(g_output_fd, "%d\t", g_threads_info[i].core_num);
-	dprintf(g_output_fd, "%.2f\n", log_thread_cpu_usage(i, g_threads_info[i].core_num));
+	char timestamp[32];
+	get_timestamp_prefix(timestamp, sizeof(timestamp));
+	dprintf(g_output_fd, "%-32s", timestamp);
+	dprintf(g_output_fd, "%-16s\t", g_threads_info[i].name);
+	dprintf(g_output_fd, "%-4d\t", g_threads_info[i].core_num);
+	dprintf(g_output_fd, "%4.2f%%\n", log_thread_cpu_usage(i, g_threads_info[i].core_num));
 }
 
 static void 
