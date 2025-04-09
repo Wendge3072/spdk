@@ -161,6 +161,8 @@ uint8_t g_current_sort_col[NUMBER_OF_TABS] = {COL_THREADS_NAME, COL_POLLERS_NAME
 uint8_t g_current_sort_col2[NUMBER_OF_TABS] = {COL_THREADS_NONE, COL_POLLERS_NONE, COL_CORES_NONE};
 bool g_interval_data = true;
 bool g_quit_app = false;
+// define file descripter
+int g_output_fd = -1;
 pthread_mutex_t g_thread_lock;
 static struct col_desc g_col_desc[NUMBER_OF_TABS][TABS_COL_COUNT] = {
 	{	{.name = "Thread name", .max_data_string = MAX_THREAD_NAME_LEN},
@@ -1413,6 +1415,12 @@ draw_thread_tab_row(uint64_t current_row, uint8_t item_index)
 		print_max_len(g_tabs[THREADS_TAB], TABS_DATA_START_ROW + item_index, col,
 			      col_desc[COL_THREADS_STATUS].max_data_string, ALIGN_RIGHT, status_str);
 		wattroff(g_tabs[THREADS_TAB], color_attr);
+	}
+	if (g_output_fd > 0){
+		dprintf(g_output_fd, "%s\t", g_threads_info[current_row].name);
+		dprintf(g_output_fd, "%d\t", core_str);
+		dprintf(g_output_fd, "%ld\t", cpu_usage);
+		dprintf(g_output_fd, "%s\n", status_str);
 	}
 }
 
@@ -3314,9 +3322,6 @@ main(int argc, char **argv)
 	char *g_output_file = NULL;
 	pthread_t data_thread;
 
-	// define file descripter
-	int g_output_fd = -1;
-
 	while ((op = getopt(argc, argv, "r:f:h")) != -1) {
 		switch (op) {
 		case 'r':
@@ -3337,14 +3342,6 @@ main(int argc, char **argv)
 			return 1;
 		}
 	}
-
-	// print hello to the file
-	if (g_output_fd >= 0) {
-		dprintf(g_output_fd, "Hello from SPDK\n");
-	}
-
-
-	return 0;
 
 	g_rpc_client = spdk_jsonrpc_client_connect(socket, socket[0] == '/' ? AF_UNIX : AF_INET);
 	if (!g_rpc_client) {
