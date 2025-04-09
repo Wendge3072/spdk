@@ -20,7 +20,8 @@
         "istream": "cpp",
         "ftl_core.h": "c",
         "event.h": "c",
-        "stdinc.h": "c"
+        "stdinc.h": "c",
+        "print": "c"
     },
     "cmake.ignoreCMakeListsMissing": true
 }

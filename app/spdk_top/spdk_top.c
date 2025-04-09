@@ -707,6 +707,39 @@ store_last_counters(uint64_t poller_id, uint64_t thread_id, uint64_t last_run_co
 	TAILQ_INSERT_TAIL(&g_run_counter_history, history, link);
 }
 
+static double 
+log_thread_cpu_usage(uint64_t i, int cpu_idx)
+{
+	double result = 0.0;
+	if (cpu_idx >= 0 && cpu_idx < RPC_MAX_CORES) {
+		uint64_t busy_ticks = g_threads_info[i].busy - g_threads_info[i].last_busy;
+		uint64_t total_ticks = (g_cores_info[cpu_idx].busy - g_cores_info[cpu_idx].last_busy) +
+								(g_cores_info[cpu_idx].idle - g_cores_info[cpu_idx].last_idle);
+		if (total_ticks > 0) {
+			result = (double)busy_ticks / (double)total_ticks * 100.0;
+		}
+	}
+
+	return result;
+}
+
+static void log_thread_info(uint64_t i){
+	dprintf(g_output_fd, "%s\t", g_threads_info[i].name);
+	dprintf(g_output_fd, "%d\t", g_threads_info[i].core_num);
+	dprintf(g_output_fd, "%.2f\n", log_thread_cpu_usage(i, g_threads_info[i].core_num));
+}
+
+static void 
+log_thread_data(uint64_t cnt){
+	uint64_t i = 0;
+	for (; i < cnt; i++){
+		if (g_threads_info[i].core_num == -1) {
+			continue;
+		}
+		log_thread_info(i);
+	}
+}
+
 static int
 get_thread_data(void)
 {
@@ -775,6 +808,10 @@ get_thread_data(void)
 	qsort(g_threads_info, g_last_threads_count, sizeof(struct rpc_thread_info), sort_threads);
 
 	pthread_mutex_unlock(&g_thread_lock);
+
+	if (g_output_fd > 0){
+		log_thread_data(current_threads_count);
+	}
 
 end:
 	spdk_jsonrpc_client_free_response(json_resp);
@@ -1415,12 +1452,6 @@ draw_thread_tab_row(uint64_t current_row, uint8_t item_index)
 		print_max_len(g_tabs[THREADS_TAB], TABS_DATA_START_ROW + item_index, col,
 			      col_desc[COL_THREADS_STATUS].max_data_string, ALIGN_RIGHT, status_str);
 		wattroff(g_tabs[THREADS_TAB], color_attr);
-	}
-	if (g_output_fd > 0){
-		dprintf(g_output_fd, "%s\t", g_threads_info[current_row].name);
-		dprintf(g_output_fd, "%s\t", core_str);
-		dprintf(g_output_fd, "%s\t", cpu_usage);
-		dprintf(g_output_fd, "%s\n", status_str);
 	}
 }
 
