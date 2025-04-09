@@ -3406,7 +3406,7 @@ main(int argc, char **argv)
 	initscr();
 	init_str_len();
 	setup_ncurses();
-	draw_interface();
+	// draw_interface();
 
 	rc = wait_init(&data_thread);
 	if (!rc) {
