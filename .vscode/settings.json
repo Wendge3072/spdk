@@ -21,8 +21,9 @@
         "ftl_core.h": "c",
         "event.h": "c",
         "stdinc.h": "c",
-        "print": "c"
+        "print": "c",
+        "xor.h": "c"
     },
     "cmake.ignoreCMakeListsMissing": true,
-    "commentTranslate.hover.enabled": false
+    "commentTranslate.hover.enabled": true
 }
