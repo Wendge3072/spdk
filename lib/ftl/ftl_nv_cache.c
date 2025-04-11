@@ -515,7 +515,7 @@ compaction_stats_update(struct ftl_nv_cache_chunk *chunk)
 	double avg_to_read = (double)chunk->read_blocks_sum / (double)chunk->comp_read_num;
 	FTL_NOTICELOG(dev, "Free Chunk Ratio: %.2f%%, and Free Band Num: %zu\n", (double)nv_cache->chunk_free_count / nv_cache->chunk_count * 100, dev->num_free);
 	FTL_NOTICELOG(dev, "Compaction ended id: %zu, poller ite: %zu\n", get_chunk_idx(chunk), dev->poller_ite_cnt);
-	FTL_NOTICELOG(dev, "Compaction started %zu times, read submitted %zu times\n, avg to_read: %.2f blocks\n", chunk->comp_start_num, chunk->comp_read_num, avg_to_read);
+	FTL_NOTICELOG(dev, "Compaction started %zu times, read submitted %zu times, avg to_read: %.2f blocks\n", chunk->comp_start_num, chunk->comp_read_num, avg_to_read);
 	FTL_NOTICELOG(dev, "Compaction bandwidth: %.2f MiB/s and length: %.2f ms\n", (*ptr) * spdk_get_ticks_hz() / (1024 * 1024), (double)chunk->compaction_length_tsc / spdk_get_ticks_hz() * 1000);
 	FTL_NOTICELOG(dev, "Compaction Skip BW: %.2f MiB/s\n", chunk->md->blocks_comp_skip * FTL_BLOCK_SIZE / (double)chunk->compaction_length_tsc * spdk_get_ticks_hz() / (1024 * 1024));
 	chunk->comp_start_num = 0;
@@ -854,25 +854,26 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 	} else {
 		offset = to_read;
 	}
+//
+	// if (offset) {
+	// 	chunk->md->read_pointer += offset;
+	// 	chunk->md->read_done_ptr += offset;
+	// 	chunk_compaction_advance(chunk, offset);
+	// 	chunk->md->blocks_comp_skip += offset;
+	// 	to_read -= offset;
+	// 	if (!to_read) { // 没有可以读取的block，该chunk剩余部分无需compaction
+	// 		compactor_deactivate(compactor);
+	// 		return;
+	// 	}
+	// }
 
-	if (offset) {
-		chunk->md->read_pointer += offset;
-		chunk->md->read_done_ptr += offset;
-		chunk_compaction_advance(chunk, offset);
-		chunk->md->blocks_comp_skip += offset;
-		to_read -= offset;
-		if (!to_read) { // 没有可以读取的block，该chunk剩余部分无需compaction
-			compactor_deactivate(compactor);
-			return;
-		}
-	}
+	// end = ftl_bitmap_find_first_clear(dev->valid_map, begin + 1, begin + to_read);
+	// if (end != UINT64_MAX) {
+	// 	to_read = end - begin;
+	// }
 
-	end = ftl_bitmap_find_first_clear(dev->valid_map, begin + 1, begin + to_read);
-	if (end != UINT64_MAX) {
-		to_read = end - begin;
-	}
-
-	addr = begin;
+	// addr = begin;
+//
 	to_read = spdk_min(to_read, compactor->rd->num_blocks);
 
 	/* Read data and metadata from NV cache */
