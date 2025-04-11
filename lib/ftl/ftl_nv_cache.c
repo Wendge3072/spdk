@@ -512,11 +512,15 @@ compaction_stats_update(struct ftl_nv_cache_chunk *chunk)
 
 	*ptr = (double)chunk->md->blocks_compacted * FTL_BLOCK_SIZE / chunk->compaction_length_tsc;
 	struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(chunk->nv_cache, struct spdk_ftl_dev, nv_cache);
+	double avg_to_read = (double)chunk->read_blocks_sum / (double)chunk->comp_read_num;
 	FTL_NOTICELOG(dev, "Free Chunk Ratio: %.2f%%, and Free Band Num: %zu\n", (double)nv_cache->chunk_free_count / nv_cache->chunk_count * 100, dev->num_free);
-	FTL_NOTICELOG(dev, "Compaction ended id: %zu, poller ite: %zu, started %zu times\n", get_chunk_idx(chunk), dev->poller_ite_cnt, chunk->comp_start_num);
+	FTL_NOTICELOG(dev, "Compaction ended id: %zu, poller ite: %zu\n", get_chunk_idx(chunk), dev->poller_ite_cnt);
+	FTL_NOTICELOG(dev, "Compaction started %zu times, read submitted %zu times\n, avg to_read: %.2f blocks\n", chunk->comp_start_num, chunk->comp_read_num, avg_to_read);
 	FTL_NOTICELOG(dev, "Compaction bandwidth: %.2f MiB/s and length: %.2f ms\n", (*ptr) * spdk_get_ticks_hz() / (1024 * 1024), (double)chunk->compaction_length_tsc / spdk_get_ticks_hz() * 1000);
 	FTL_NOTICELOG(dev, "Compaction Skip BW: %.2f MiB/s\n", chunk->md->blocks_comp_skip * FTL_BLOCK_SIZE / (double)chunk->compaction_length_tsc * spdk_get_ticks_hz() / (1024 * 1024));
 	chunk->comp_start_num = 0;
+	chunk->comp_read_num = 0;
+	chunk->read_blocks_sum = 0;
 	chunk->compaction_length_tsc = 0;
 
 	compaction_bw->sum += *ptr;
@@ -873,6 +877,8 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 
 	/* Read data and metadata from NV cache */
 	rc = compaction_submit_read(compactor, addr, to_read);
+	chunk->read_blocks_sum += to_read;
+	chunk->comp_read_num++;
 	if (spdk_unlikely(rc)) {
 		/* An error occurred, inactivate this compactor, it will retry
 		 * in next iteration
