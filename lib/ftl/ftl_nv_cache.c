@@ -1128,7 +1128,9 @@ ftl_nv_cache_submit_cb(struct spdk_bdev_io *bdev_io, bool success, void *cb_arg)
 		io->status = -EIO;
 		ftl_nv_cache_submit_cb_done(io);
 	} else {
+		// To print
 		io->dev->nv_cache.n_submit_blks += io->num_blocks;
+		io->dev->nv_cache.comp_base_dev_bw.user_blocks_submitted += io->num_blocks;
 		ftl_nv_cache_l2p_update(io);
 	}
 }
@@ -1384,26 +1386,34 @@ ftl_comp_update_base_dev_stats(struct ftl_nv_cache *nv_cache){
 	if (spdk_unlikely(!nv_cache->comp_base_dev_bw.start_tsc)) {
 		nv_cache->comp_base_dev_bw.start_tsc = tsc;
 		nv_cache->comp_base_dev_bw.blocks_submitted = 0;
+		nv_cache->comp_base_dev_bw.user_blocks_submitted = 0;
 	} else if(tsc - nv_cache->comp_base_dev_bw.start_tsc >= nv_cache->comp_base_dev_bw.interval_tsc) {
 		struct comp_base_dev_bw_stats *comp_base_dev_bw = &nv_cache->comp_base_dev_bw;
-		double *ptr;
+		double *ptr1, *ptr2;
 		if(spdk_likely(comp_base_dev_bw->count == FTL_NV_CACHE_COMPACTION_SMA_N)){
-			ptr = comp_base_dev_bw->buf + comp_base_dev_bw->first;
+			ptr1 = comp_base_dev_bw->buf + comp_base_dev_bw->first;
+			ptr2 = comp_base_dev_bw->user_bw_buf + comp_base_dev_bw->first;
 			comp_base_dev_bw->first++;
 			if(comp_base_dev_bw->first == FTL_NV_CACHE_COMPACTION_SMA_N){
 				comp_base_dev_bw->first = 0;
 			}
-			comp_base_dev_bw->sum -= *ptr;
+			comp_base_dev_bw->sum -= *ptr1;
+			comp_base_dev_bw->user_sum -= *ptr2;
 		} else {
-			ptr = comp_base_dev_bw->buf + comp_base_dev_bw->count;
+			ptr1 = comp_base_dev_bw->buf + comp_base_dev_bw->count;
+			ptr2 = comp_base_dev_bw->user_bw_buf + comp_base_dev_bw->count;
 			comp_base_dev_bw->count++;
 		}
 		uint64_t tsc_now = spdk_thread_get_last_tsc(spdk_get_thread());
-		*ptr = (double)comp_base_dev_bw->blocks_submitted * FTL_BLOCK_SIZE / (double)(tsc_now - nv_cache->comp_base_dev_bw.start_tsc);
+		*ptr1 = (double)comp_base_dev_bw->blocks_submitted * FTL_BLOCK_SIZE / (double)(tsc_now - nv_cache->comp_base_dev_bw.start_tsc);
+		*ptr2 = (double)comp_base_dev_bw->user_blocks_submitted * FTL_BLOCK_SIZE / (double)(tsc_now - nv_cache->comp_base_dev_bw.start_tsc);
 		comp_base_dev_bw->blocks_submitted = 0;
+		comp_base_dev_bw->user_blocks_submitted = 0;
 		nv_cache->comp_base_dev_bw.start_tsc = tsc_now;
-		comp_base_dev_bw->sum += *ptr;
+		comp_base_dev_bw->sum += *ptr1;
+		comp_base_dev_bw->user_sum += *ptr2;
 		comp_base_dev_bw->avg_bw = comp_base_dev_bw->sum / comp_base_dev_bw->count;
+		comp_base_dev_bw->user_avg_bw = comp_base_dev_bw->user_sum / comp_base_dev_bw->count;
 	}
 }
 

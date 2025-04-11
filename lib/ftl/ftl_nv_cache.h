@@ -226,15 +226,19 @@ struct ftl_nv_cache {
 
 	struct comp_base_dev_bw_stats {
 		double buf[FTL_NV_CACHE_COMPACTION_SMA_N];
+		double user_bw_buf[FTL_NV_CACHE_COMPACTION_SMA_N];
 		ptrdiff_t first;
 		size_t count;
 		double sum;
+		double user_sum;
 		uint64_t interval_tsc;
 		uint64_t start_tsc;
 		uint64_t blocks_submitted;
-		double bw_limit_sec;
+		uint64_t user_blocks_submitted;
 		double avg_bw;
+		double user_avg_bw;
 	} comp_base_dev_bw;
+
 
 	struct {
 		uint64_t interval_tsc;
@@ -242,6 +246,7 @@ struct ftl_nv_cache {
 		uint64_t blocks_submitted;
 		uint64_t blocks_submitted_limit;
 	} throttle;
+	// to print
 	uint64_t n_submit_blks;
 };
 

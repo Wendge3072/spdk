@@ -163,10 +163,10 @@ static const struct ftl_mngt_process_desc desc_first_start = {
 			.action = ftl_mngt_clear_l2p,
 			.cleanup = ftl_mngt_clear_l2p
 		},
-		// {// TO Comment
-		// 	.name = "Scrub NV cache",
-		// 	.action = ftl_mngt_scrub_nv_cache,
-		// },// TO Comment
+		{// TO Comment
+			.name = "Scrub NV cache",
+			.action = ftl_mngt_scrub_nv_cache,
+		},// TO Comment
 		{
 			.name = "Finalize band initialization",
 			.action = ftl_mngt_finalize_init_bands,
