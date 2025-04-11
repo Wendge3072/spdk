@@ -855,24 +855,24 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 		offset = to_read;
 	}
 //
-	// if (offset) {
-	// 	chunk->md->read_pointer += offset;
-	// 	chunk->md->read_done_ptr += offset;
-	// 	chunk_compaction_advance(chunk, offset);
-	// 	chunk->md->blocks_comp_skip += offset;
-	// 	to_read -= offset;
-	// 	if (!to_read) { // 没有可以读取的block，该chunk剩余部分无需compaction
-	// 		compactor_deactivate(compactor);
-	// 		return;
-	// 	}
-	// }
+	if (offset) {
+		chunk->md->read_pointer += offset;
+		chunk->md->read_done_ptr += offset;
+		chunk_compaction_advance(chunk, offset);
+		chunk->md->blocks_comp_skip += offset;
+		to_read -= offset;
+		if (!to_read) { // 没有可以读取的block，该chunk剩余部分无需compaction
+			compactor_deactivate(compactor);
+			return;
+		}
+	}
 
-	// end = ftl_bitmap_find_first_clear(dev->valid_map, begin + 1, begin + to_read);
-	// if (end != UINT64_MAX) {
-	// 	to_read = end - begin;
-	// }
+	end = ftl_bitmap_find_first_clear(dev->valid_map, begin + 1, begin + to_read);
+	if (end != UINT64_MAX) {
+		to_read = end - begin;
+	}
 
-	// addr = begin;
+	addr = begin;
 //
 	to_read = spdk_min(to_read, compactor->rd->num_blocks);
 
