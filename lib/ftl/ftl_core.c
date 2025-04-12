@@ -328,7 +328,7 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev, bool *background_gc)
 		}
 		return true;
 	}
-	FTL_NOTICELOG(dev, "Invalid Ratio: %.2f, and Free Band Ratio: %.2f, Compaction writing: %.2f MiB/s, Do Not Need GC!\n", invalid_ratio, free_band_ratio, comp_bw / (spdk_get_ticks_hz() * 1024*1024));
+	// FTL_NOTICELOG(dev, "Invalid Ratio: %.2f, and Free Band Ratio: %.2f, Compaction writing: %.2f MiB/s, Do Not Need GC!\n", invalid_ratio, free_band_ratio, comp_bw / (spdk_get_ticks_hz() * 1024*1024));
 
 	return false;
 }
