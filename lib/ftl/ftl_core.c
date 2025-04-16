@@ -319,7 +319,7 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev, bool *background_gc)
 	bool flag = comp_idle && user_idle;
 	if ((invalid_ratio > 0.015L && dev->reloc->Max_invalidity > 0.1L && flag) || dev->num_free <= limit) {
 		if (invalid_ratio > 0.015L && dev->reloc->Max_invalidity > 0.1L && flag) {
-			FTL_NOTICELOG(dev, "Invalid Ratio: %.2f, and Free Band Ratio: %.2f, Compaction writing: %.2f MiB/s, need GC\n", invalid_ratio, free_band_ratio, comp_bw / (spdk_get_ticks_hz() * 1024*1024));
+			FTL_NOTICELOG(dev, "Invalid Ratio: %.2f, and Free Band Ratio: %.2f, Compaction writing: %.2f MiB/s, need GC\n", invalid_ratio, free_band_ratio, comp_bw / (1024*1024));
 			*background_gc = true;
 		}
 		else{

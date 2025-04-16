@@ -299,6 +299,12 @@ move_get_band(struct ftl_reloc *reloc)
 	}
 
 	TAILQ_INSERT_TAIL(&reloc->band_done, band, queue_entry);
+	FTL_NOTICELOG(reloc->dev, "Reloc band %d done\n", band->id);
+	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
+	tsc -= band->time_for_gc;
+	FTL_NOTICELOG(reloc->dev, "Time taken to gc band %d %.2f ms, poller ite: %zu \n", band->id, 1000.0 * tsc / (double)spdk_get_ticks_hz(), reloc->dev->poller_ite_cnt);
+	FTL_NOTICELOG(reloc->dev, "The GC velocity for band %d is %.2f MiB/s\n", band->id, band->blocks_gced * FTL_BLOCK_SIZE * (double)spdk_get_ticks_hz() / ((double)tsc * 1024 * 1024));
+	band->blocks_gced = 0;
 	reloc->band_done_count++;
 	reloc->band = NULL;
 
@@ -538,6 +544,11 @@ move_finish_write(struct ftl_rq *rq)
 			/* Update L2P table */
 			ftl_l2p_update_base(dev, iter->lba, addr, iter->addr);
 			ftl_l2p_unpin(dev, iter->lba, 1);
+			if (band){
+				band->blocks_gced += 1;
+			} else {
+				FTL_NOTICELOG(dev, "Band is NULL but lba Valid!!!\n");
+			}
 		}
 		addr = ftl_band_next_addr(rq_band, addr, 1);
 	}

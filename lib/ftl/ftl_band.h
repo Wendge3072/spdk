@@ -154,6 +154,8 @@ struct ftl_band {
 
 	bool                is_background_gc;
 	bool                is_shut;
+	uint64_t            time_for_gc;
+	uint64_t            blocks_gced;
 };
 
 

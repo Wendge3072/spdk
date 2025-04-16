@@ -582,7 +582,7 @@ band_start_gc(struct spdk_ftl_dev *dev, struct ftl_band *band)
 	}
 	band->is_shut = false;
 	band->reloc = true;
-
+	band->time_for_gc = spdk_thread_get_last_tsc(spdk_get_thread());
 	// FTL_DEBUGLOG(dev, "Band to GC, id %u\n", band->id);
 	FTL_NOTICELOG(dev, "Band id %u, going to GC, valid blk num: %zu, total valid block: %zu, shut band num: %zu\n", band->id, band->p2l_map.num_valid, dev->valid_blocks_in_bands, dev->num_shut);
 	FTL_NOTICELOG(dev, "Selected Band Invalidity %.2f%%\n", _band_invalidity(band) * 100);

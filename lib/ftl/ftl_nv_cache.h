@@ -128,6 +128,8 @@ struct ftl_nv_cache_chunk {
 
 	uint64_t comp_read_num;
 
+	uint64_t square_err;
+
 	uint64_t read_blocks_sum;
 
 	/* For writing metadata */
@@ -248,6 +250,7 @@ struct ftl_nv_cache {
 	} throttle;
 	// to print
 	uint64_t n_submit_blks;
+	double avg_to_read;
 };
 
 int ftl_nv_cache_init(struct spdk_ftl_dev *dev);
