@@ -1382,7 +1382,7 @@ ftl_nv_cache_process_throttle(struct ftl_nv_cache *nv_cache)
 		nv_cache->block_submit_array[idx] = nv_cache->throttle.blocks_submitted;
 		nv_cache->block_limit_array[idx++] = nv_cache->throttle.blocks_submitted_limit;
 		if (idx == 50) {
-			for()
+			// for()
 			nv_cache->idx = 0;
 		}
 		nv_cache->throttle.blocks_submitted = 0;

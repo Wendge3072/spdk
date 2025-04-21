@@ -138,7 +138,7 @@ struct spdk_ftl_conf {
 	 */
 	size_t					conf_size;
 } __attribute__((packed));
-SPDK_STATIC_ASSERT(sizeof(struct spdk_ftl_conf) == 132, "Incorrect size");
+SPDK_STATIC_ASSERT(sizeof(struct spdk_ftl_conf) == 140, "Incorrect size");
 
 enum spdk_ftl_mode {
 	/* Create new device */
