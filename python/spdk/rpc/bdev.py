@@ -1377,6 +1377,18 @@ def bdev_ftl_set_bggc_comp_threshold(client, name, threshold):
 
     return client.call('bdev_ftl_set_bggc_comp_threshold', params)
 
+def bdev_ftl_set_switch(client, name, switches):
+    """Set the background garbage collection completion threshold for FTL bdev
+
+    Args:
+        name: name of the bdev
+        threshold: background garbage collection completion threshold
+    """
+    params = {'name': name,
+              'swutches': switches}
+
+    return client.call('bdev_ftl_set_switch', params)
+
 
 def bdev_ftl_load(client, name, base_bdev, **kwargs):
     """Load FTL bdev

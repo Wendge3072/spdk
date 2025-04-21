@@ -16,6 +16,8 @@ except ImportError:
 sys.path.append(os.path.dirname(__file__) + '/../python')
 
 import spdk.rpc as rpc  # noqa
+# 打印rpc包的地址
+print(rpc.__file__)
 from spdk.rpc.client import print_dict, print_json, JSONRPCException  # noqa
 from spdk.rpc.helpers import deprecated_aliases  # noqa
 
@@ -2039,6 +2041,14 @@ Format: 'user:u1 secret:s1 muser:mu1 msecret:ms1,user:u2 secret:s2 muser:mu2 mse
     p.add_argument('-b', '--name', help="Name of the bdev", required=True)
     p.add_argument('-t', '--threshold', help='Background garbage collection compaction threshold (MiB/s)', required=True, type=int)
     p.set_defaults(func=bdev_ftl_set_bggc_comp_threshold)
+
+    def spdk_ftl_switchs(args):
+        print_dict(rpc.bdev.bdev_ftl_set_switch(args.client, name=args.name, threshold=args.threshold))
+
+    p = subparsers.add_parser('spdk_ftl_switchs', help='Set FTL bdev switches')
+    p.add_argument('-b', '--name', help="Name of the bdev", required=True)
+    p.add_argument('-s', '--switches', help='Switches, 0xFF for max', required=True, type=int)
+    p.set_defaults(func=spdk_ftl_switchs)
 
     def bdev_ftl_load(args):
         print_dict(rpc.bdev.bdev_ftl_load(args.client,
