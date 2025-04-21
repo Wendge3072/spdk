@@ -1378,6 +1378,13 @@ ftl_nv_cache_process_throttle(struct ftl_nv_cache *nv_cache)
 	} else if (tsc - nv_cache->throttle.start_tsc >= nv_cache->throttle.interval_tsc) {
 		ftl_nv_cache_throttle_update(nv_cache);
 		nv_cache->throttle.start_tsc = tsc;
+		uint64_t idx = nv_cache->idx;
+		nv_cache->block_submit_array[idx] = nv_cache->throttle.blocks_submitted;
+		nv_cache->block_limit_array[idx++] = nv_cache->throttle.blocks_submitted_limit;
+		if (idx == 50) {
+			for()
+			nv_cache->idx = 0;
+		}
 		nv_cache->throttle.blocks_submitted = 0;
 	}
 }

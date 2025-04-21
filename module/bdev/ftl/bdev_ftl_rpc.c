@@ -152,6 +152,24 @@ invalid:
 }
 SPDK_RPC_REGISTER("bdev_ftl_set_bggc_comp_threshold", rpc_bdev_ftl_set_bggc_comp_threshold, SPDK_RPC_RUNTIME)
 
+struct rpc_ftl_switch {
+	char *name;
+	bool switch_number;
+};
+
+static const struct spdk_json_object_decoder rpc_ftl_switch_decoders[] = {
+	{"name", offsetof(struct rpc_ftl_switch, name), spdk_json_decode_string},
+	{"threshold", offsetof(struct rpc_ftl_switch, switch_number), spdk_json_decode_uint32},
+};
+
+static void
+rpc_bdev_ftl_set_switch(struct spdk_jsonrpc_request *request,
+	const struct spdk_json_val *params)
+{
+	
+}
+
+
 static void
 rpc_bdev_ftl_load(struct spdk_jsonrpc_request *request,
 		  const struct spdk_json_val *params)

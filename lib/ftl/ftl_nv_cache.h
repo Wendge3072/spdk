@@ -217,6 +217,10 @@ struct ftl_nv_cache {
 	/* Simple moving average of recent compaction velocity values */
 	double compaction_sma;
 
+	uint64_t block_limit_array[50];
+	uint64_t block_submit_array[50];
+	uint64_t idx;
+
 #define FTL_NV_CACHE_COMPACTION_SMA_N (FTL_NV_CACHE_NUM_COMPACTORS * 2)
 	/* Circular buffer holding values for calculating compaction SMA */
 	struct compaction_bw_stats {
