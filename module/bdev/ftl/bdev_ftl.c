@@ -517,6 +517,38 @@ not_found:
 	cb_fn(cb_arg, -ENODEV);
 }
 
+void bdev_ftl_set_switch(const char *name, uint32_t switch_number,
+			spdk_ftl_fn cb_fn, void *cb_arg)
+{
+	struct spdk_bdev_desc *ftl_bdev_desc;
+	struct spdk_bdev *bdev;
+	struct ftl_bdev *ftl;
+	int rc;
+
+	rc = spdk_bdev_open_ext(name, false, bdev_ftl_event_cb, NULL, &ftl_bdev_desc);
+
+	if (rc) {
+		goto not_found;
+	}
+
+	bdev = spdk_bdev_desc_get_bdev(ftl_bdev_desc);
+
+	if (bdev->module != &g_ftl_if) {
+		rc = -ENODEV;
+		goto bdev_opened;
+	}
+
+	ftl = bdev->ctxt;
+	assert(ftl);
+	spdk_ftl_set_switch(ftl->dev, switch_number);
+	cb_fn(cb_arg, 0);
+	return;
+bdev_opened:
+	spdk_bdev_close(ftl_bdev_desc);
+not_found:
+	cb_fn(cb_arg, -ENODEV);
+}
+
 struct ftl_unmap_ctx {
 	struct spdk_bdev_desc *bdev;
 	spdk_ftl_fn cb_fn;

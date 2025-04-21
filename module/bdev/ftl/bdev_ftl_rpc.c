@@ -159,14 +159,32 @@ struct rpc_ftl_switch {
 
 static const struct spdk_json_object_decoder rpc_ftl_switch_decoders[] = {
 	{"name", offsetof(struct rpc_ftl_switch, name), spdk_json_decode_string},
-	{"threshold", offsetof(struct rpc_ftl_switch, switch_number), spdk_json_decode_uint32},
+	{"number", offsetof(struct rpc_ftl_switch, switch_number), spdk_json_decode_uint32},
 };
+
+static void
+rpc_bdev_ftl_set_switch_cb(void *cb_arg, int bdeverrno)
+{
+	struct spdk_jsonrpc_request *request = cb_arg;
+
+	spdk_jsonrpc_send_bool_response(request, bdeverrno == 0);
+}
 
 static void
 rpc_bdev_ftl_set_switch(struct spdk_jsonrpc_request *request,
 	const struct spdk_json_val *params)
 {
-	
+	struct rpc_ftl_switch attrs = {};
+	if (spdk_json_decode_object(params, rpc_ftl_switch_decoders,
+				    SPDK_COUNTOF(rpc_ftl_switch_decoders),
+				    &attrs)) {
+		spdk_jsonrpc_send_error_response(request, SPDK_JSONRPC_ERROR_INVALID_PARAMS,
+						 "Invalid parameters");
+		goto invalid;
+	}
+	bdev_ftl_set_switch(attrs.name, attrs.switch_number, rpc_bdev_ftl_set_switch_cb, request);
+invalid:
+	free(attrs.name);
 }
 
 

@@ -125,6 +125,8 @@ struct spdk_ftl_conf {
 	
 	uint32_t                bg_gc_threshold;
 
+	uint32_t                switches;
+
 	/* Hole at bytes 0x79 - 0x7f. */
 	// uint8_t					reserved2[7];
 	uint8_t					reserved2[3];
@@ -136,7 +138,7 @@ struct spdk_ftl_conf {
 	 */
 	size_t					conf_size;
 } __attribute__((packed));
-SPDK_STATIC_ASSERT(sizeof(struct spdk_ftl_conf) == 136, "Incorrect size");
+SPDK_STATIC_ASSERT(sizeof(struct spdk_ftl_conf) == 132, "Incorrect size");
 
 enum spdk_ftl_mode {
 	/* Create new device */
@@ -323,6 +325,14 @@ void spdk_ftl_dev_set_fast_shutdown(struct spdk_ftl_dev *dev, bool fast_shutdown
  * \param bggc_comp_threshold Background GC compaction threshold
  */
 void spdk_ftl_set_bggc_comp_threshold(struct spdk_ftl_dev *dev, uint32_t bggc_comp_threshold);
+
+/**
+ * Set the NO.x switch of ftl.
+ *
+ * \param dev Device
+ * \param switch_number switch number
+ */
+void spdk_ftl_set_switch(struct spdk_ftl_dev *dev, uint32_t switch_number);
 
 /*
  * Returns current FTL I/O statistics.

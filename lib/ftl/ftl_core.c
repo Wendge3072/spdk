@@ -829,6 +829,18 @@ spdk_ftl_set_bggc_comp_threshold(struct spdk_ftl_dev *dev, uint32_t bggc_comp_th
 }
 
 void
+spdk_ftl_set_switch(struct spdk_ftl_dev *dev, uint32_t switch_number){
+	assert(dev);
+	dev->conf.switch ^= (1L << switch_number);
+	if (dev->conf.switch & (1L << switch_number)) {
+		FTL_NOTICELOG(dev, "Switch %u is ON\n", switch_number);
+	} else {
+		FTL_NOTICELOG(dev, "Switch %u is OFF\n", switch_number);
+	}
+}
+
+
+void
 ftl_stats_bdev_io_completed(struct spdk_ftl_dev *dev, enum ftl_stats_type type,
 			    struct spdk_bdev_io *bdev_io)
 {
