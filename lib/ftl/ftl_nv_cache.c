@@ -1380,8 +1380,8 @@ ftl_nv_cache_process_throttle(struct ftl_nv_cache *nv_cache)
 		nv_cache->throttle.start_tsc = tsc;
 		struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(nv_cache, struct spdk_ftl_dev, nv_cache);
 		if (dev->conf.switches & (1 << FTL_SWITCH_PRINT_UIOBW)) {
-			FTL_NOTICELOG(dev, "User Writing Limit per 20ms: %u\n", nv_cache->throttle.blocks_submitted_limit);
-			FTL_NOTICELOG(dev, "User Writing Num   per 20ms: %u\n", nv_cache->throttle.blocks_submitted);
+			FTL_NOTICELOG(dev, "User Writing Limit per 20ms: %lu\n", nv_cache->throttle.blocks_submitted_limit);
+			FTL_NOTICELOG(dev, "User Writing Num   per 20ms: %lu\n", nv_cache->throttle.blocks_submitted);
 		}
 		nv_cache->throttle.blocks_submitted = 0;
 	}
