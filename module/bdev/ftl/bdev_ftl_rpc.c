@@ -186,7 +186,7 @@ rpc_bdev_ftl_set_switch(struct spdk_jsonrpc_request *request,
 invalid:
 	free(attrs.name);
 }
-
+SPDK_RPC_REGISTER("bdev_ftl_set_switch", rpc_bdev_ftl_set_switch, SPDK_RPC_RUNTIME)
 
 static void
 rpc_bdev_ftl_load(struct spdk_jsonrpc_request *request,
