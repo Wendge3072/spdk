@@ -2042,13 +2042,13 @@ Format: 'user:u1 secret:s1 muser:mu1 msecret:ms1,user:u2 secret:s2 muser:mu2 mse
     p.add_argument('-t', '--threshold', help='Background garbage collection compaction threshold (MiB/s)', required=True, type=int)
     p.set_defaults(func=bdev_ftl_set_bggc_comp_threshold)
 
-    def spdk_ftl_switchs(args):
+    def spdk_ftl_switches(args):
         print_dict(rpc.bdev.bdev_ftl_set_switch(args.client, name=args.name, number=args.number))
 
-    p = subparsers.add_parser('spdk_ftl_switchs', help='Set FTL bdev switches')
+    p = subparsers.add_parser('spdk_ftl_switches', help='Set FTL bdev switches')
     p.add_argument('-b', '--name', help="Name of the bdev", required=True)
     p.add_argument('-n', '--number', help='Switches, 0xFF for max', required=True, type=int)
-    p.set_defaults(func=spdk_ftl_switchs)
+    p.set_defaults(func=spdk_ftl_switches)
 
     def bdev_ftl_load(args):
         print_dict(rpc.bdev.bdev_ftl_load(args.client,
