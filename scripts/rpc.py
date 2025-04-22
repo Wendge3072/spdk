@@ -17,7 +17,7 @@ sys.path.append(os.path.dirname(__file__) + '/../python')
 
 import spdk.rpc as rpc  # noqa
 # 打印rpc包的地址
-# print(rpc.__file__)
+print(rpc.__file__)
 from spdk.rpc.client import print_dict, print_json, JSONRPCException  # noqa
 from spdk.rpc.helpers import deprecated_aliases  # noqa
 
