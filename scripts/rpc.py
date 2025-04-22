@@ -2043,7 +2043,7 @@ Format: 'user:u1 secret:s1 muser:mu1 msecret:ms1,user:u2 secret:s2 muser:mu2 mse
     p.set_defaults(func=bdev_ftl_set_bggc_comp_threshold)
 
     def spdk_ftl_switchs(args):
-        print_dict(rpc.bdev.bdev_ftl_set_switch(args.client, name=args.name, threshold=args.threshold))
+        print_dict(rpc.bdev.bdev_ftl_set_switch(args.client, name=args.name, number=args.number))
 
     p = subparsers.add_parser('spdk_ftl_switchs', help='Set FTL bdev switches')
     p.add_argument('-b', '--name', help="Name of the bdev", required=True)
