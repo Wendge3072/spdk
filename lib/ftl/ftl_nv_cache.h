@@ -76,7 +76,6 @@ struct ftl_nv_cache_chunk_md {
 
 	/* Next block to be compacted */
 	uint32_t read_pointer;
-	uint32_t read_done_ptr;
 
 	/* Number of compacted (both valid and invalid) blocks */
 	uint32_t blocks_compacted;
@@ -118,8 +117,6 @@ struct ftl_nv_cache_chunk {
 
 	/* Compaction start time */
 	uint64_t compaction_start_tsc;
-
-	uint64_t compaction_first_start_tsc;
 
 	/* Compaction duration */
 	uint64_t compaction_length_tsc;

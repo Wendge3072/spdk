@@ -1389,6 +1389,13 @@ def bdev_ftl_set_switch(client, name, number):
 
     return client.call('bdev_ftl_set_switch', params)
 
+def bdev_ftl_get_switches(client, name):
+    """Get the switches for FTL bdev
+
+    Args:
+        name: name of the bdev
+    """
+    return client.call('bdev_ftl_get_switches', {'name': name})
 
 def bdev_ftl_load(client, name, base_bdev, **kwargs):
     """Load FTL bdev
