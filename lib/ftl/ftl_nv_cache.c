@@ -17,7 +17,6 @@
 #include "mngt/ftl_mngt.h"
 
 static uint64_t chunk_blocks_to_read(struct ftl_nv_cache_chunk *chunk);
-static uint64_t chunk_blocks_to_read_done(struct ftl_nv_cache_chunk *chunk);
 static inline uint64_t nvc_data_blocks(struct ftl_nv_cache *nv_cache) __attribute__((unused));
 static struct ftl_nv_cache_compactor *compactor_alloc(struct spdk_ftl_dev *dev);
 static void compactor_free(struct spdk_ftl_dev *dev, struct ftl_nv_cache_compactor *compactor);
