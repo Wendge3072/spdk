@@ -826,7 +826,6 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 //
 	if (offset) {
 		chunk->md->read_pointer += offset;
-		chunk->md->read_done_ptr += offset;
 		chunk_compaction_advance(chunk, offset);
 		chunk->md->blocks_comp_skip += offset;
 		to_read -= offset;
@@ -1501,7 +1500,6 @@ ftl_nv_cache_save_state(struct ftl_nv_cache *nv_cache)
 			 */
 			chunk->md->read_pointer = chunk->md->blocks_compacted = 0;
 			chunk->md->blocks_comp_skip = 0;
-			chunk->md->read_done_ptr = 0;
 		} else if (chunk->md->blocks_written == nv_cache->chunk_blocks) {
 			/* Full chunk */
 		} else if (0 == chunk->md->blocks_written) {
