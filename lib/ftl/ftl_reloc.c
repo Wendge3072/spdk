@@ -717,7 +717,7 @@ ftl_reloc_update(struct ftl_reloc *reloc){
 			if (!band->reloc && band->phys_id == reloc->dev->sb_shm->gc_info.band_phys_id && band_invalidity(band) > reloc->Max_invalidity){
 				reloc->Max_invalidity = band_invalidity(band);
 				reloc->Invalidity_from_band = true;
-				reloc->Invalidity_src_id = band_id
+				reloc->Invalidity_src_id = band_id;
 			}
 			else {
 				reloc->Invalidity_from_band = false;
