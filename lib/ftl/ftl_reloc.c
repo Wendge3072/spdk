@@ -80,6 +80,8 @@ struct ftl_reloc {
 	} rThrottle;
 
 	double Max_invalidity;
+	bool Invalidity_from_band;
+	uint64_t Invalidity_src_id;
 
 };
 
@@ -707,15 +709,33 @@ ftl_reloc_update(struct ftl_reloc *reloc){
 	if(spdk_unlikely(!reloc->rThrottle.rStart_tsc)){
 		reloc->rThrottle.rStart_tsc = tsc;
 	} else if(tsc - reloc->rThrottle.rStart_tsc >= reloc->rThrottle.rInterval_tsc){
-		reloc->Max_invalidity = ftl_update_phygrp_invalid(reloc->dev);
+		uint64_t phy_id;
+		reloc->Max_invalidity = ftl_update_phygrp_invalid(reloc->dev, &phy_id);
 		uint64_t band_id = reloc->dev->sb_shm->gc_info.current_band_id;
 		if (band_id != FTL_BAND_ID_INVALID){
 			struct ftl_band *band = &reloc->dev->bands[band_id];
 			if (!band->reloc && band->phys_id == reloc->dev->sb_shm->gc_info.band_phys_id && band_invalidity(band) > reloc->Max_invalidity){
 				reloc->Max_invalidity = band_invalidity(band);
+				reloc->Invalidity_from_band = true;
+				reloc->Invalidity_src_id = band_id
+			}
+			else {
+				reloc->Invalidity_from_band = false;
+				reloc->Invalidity_src_id = phy_id;
 			}
 		}
 		reloc->rThrottle.rStart_tsc = tsc;
+	}
+}
+
+void
+ftl_check_max_invlidity(struct spdk_ftl_dev *dev)
+{
+	struct ftl_reloc *reloc = dev->reloc;	
+	if(reloc->Invalidity_from_band){
+		FTL_NOTICELOG(dev, "Max invalidity updated to %.2f%%, by band, id: %lu\n", reloc->Max_invalidity * 100, reloc->Invalidity_src_id);
+	} else {
+		FTL_NOTICELOG(dev, "Max invalidity updated to %.2f%%, by band group, id: %lu\n", reloc->Max_invalidity * 100, reloc->Invalidity_src_id);
 	}
 }
 

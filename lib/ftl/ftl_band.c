@@ -543,7 +543,7 @@ band_cmp(double a_invalidity, double a_wr_cnt,
 	return a_id < b_id;
 }
 
-double ftl_update_phygrp_invalid(struct spdk_ftl_dev *dev){
+double ftl_update_phygrp_invalid(struct spdk_ftl_dev *dev, uint64_t *phy_id){
 	double invalidity, max_invalidity = 0.0L;
 	double wr_cnt, max_wr_cnt = 0.0L;
 	uint64_t phys_id = FTL_BAND_PHYS_ID_INVALID;
@@ -553,7 +553,9 @@ double ftl_update_phygrp_invalid(struct spdk_ftl_dev *dev){
 	struct ftl_band *band;
 	for (i = 0; i < band_count; i += phys_count) {
 		band = &dev->bands[i];
+
 		if (!get_band_phys_info(dev, band->phys_id, &invalidity, &wr_cnt)) continue;
+		
 		if (invalidity != 0.0L) {
 			if (phys_id == FTL_BAND_PHYS_ID_INVALID ||
 			    band_cmp(invalidity, wr_cnt, max_invalidity, max_wr_cnt,
@@ -564,6 +566,7 @@ double ftl_update_phygrp_invalid(struct spdk_ftl_dev *dev){
 			}
 		}
 	}
+	*phy_id = phys_id;
 	return max_invalidity;
 }
 
@@ -677,7 +680,7 @@ ftl_band_search_next_to_reloc(struct spdk_ftl_dev *dev)
 		FTL_NOTICELOG(dev, "Selected Phys band Invalidity %.2f%%\n", max_invalidity * 100);
 		if (max_invalidity < 0.1L){
 			FTL_NOTICELOG(dev, "Selected Phys band Invalidity is too low, %.2f%%\n", max_invalidity * 100);
-			return NULL;
+			ftl_check_max_invlidity(dev);
 		}
 		dev->sb_shm->gc_info.is_valid = 0;
 		dev->sb_shm->gc_info.current_band_id = phys_id * phys_count;

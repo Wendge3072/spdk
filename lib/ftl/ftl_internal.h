@@ -157,6 +157,8 @@ void ftl_reloc_free(struct ftl_reloc *reloc);
 
 void ftl_reloc(struct ftl_reloc *reloc);
 
+void ftl_check_max_invlidity(struct spdk_ftl_dev *dev);
+
 void ftl_reloc_halt(struct ftl_reloc *reloc);
 
 void ftl_reloc_resume(struct ftl_reloc *reloc);
