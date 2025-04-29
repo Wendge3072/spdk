@@ -244,6 +244,8 @@ struct ftl_nv_cache {
 		uint64_t start_tsc;
 		uint64_t blocks_submitted;
 		uint64_t blocks_submitted_limit;
+		double   blocks_submitted_limit_base;
+		double   blocks_submitted_limit_modifier;
 	} throttle;
 	// to print
 	uint64_t n_submit_blks;
