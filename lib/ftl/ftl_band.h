@@ -178,6 +178,7 @@ ftl_addr ftl_band_tail_md_addr(struct ftl_band *band);
 int ftl_band_filled(struct ftl_band *band, size_t offset);
 int ftl_band_write_prep(struct ftl_band *band);
 size_t ftl_p2l_map_pool_elem_size(struct spdk_ftl_dev *dev);
+bool is_band_relocateable(struct ftl_band *band);
 struct ftl_band *ftl_band_search_next_to_reloc(struct spdk_ftl_dev *dev);
 void ftl_band_init_gc_iter(struct spdk_ftl_dev *dev);
 ftl_addr ftl_band_p2l_map_addr(struct ftl_band *band);

@@ -714,7 +714,7 @@ ftl_reloc_update(struct ftl_reloc *reloc){
 		uint64_t band_id = reloc->dev->sb_shm->gc_info.current_band_id;
 		if (band_id != FTL_BAND_ID_INVALID){
 			struct ftl_band *band = &reloc->dev->bands[band_id];
-			if (!band->reloc && band->phys_id == reloc->dev->sb_shm->gc_info.band_phys_id && band_invalidity(band) > reloc->Max_invalidity){
+			if (is_band_relocateable(band) && band->phys_id == reloc->dev->sb_shm->gc_info.band_phys_id && band_invalidity(band) > reloc->Max_invalidity){
 				reloc->Max_invalidity = band_invalidity(band);
 				reloc->Invalidity_from_band = true;
 				reloc->Invalidity_src_id = band_id;

@@ -468,7 +468,7 @@ dump_bands_under_relocation(struct spdk_ftl_dev *dev)
 	}
 }
 
-static bool
+bool
 is_band_relocateable(struct ftl_band *band)
 {
 	/* Can only move data from closed bands */
