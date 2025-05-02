@@ -244,9 +244,23 @@ struct ftl_nv_cache {
 		uint64_t start_tsc;
 		uint64_t blocks_submitted;
 		uint64_t blocks_submitted_limit;
+		// 组大小，默认25个为一组，即0.5s
+		uint16_t group_size;
+		// 组内的时间片个数，等于组大小时，记录到history中
+		uint16_t fragmnt_cnt;
+		// 要记录到history中的数据
+		uint32_t grouped_blocks_limit;
 		double   blocks_submitted_limit_base;
 		double   blocks_submitted_limit_modifier;
 	} throttle;
+
+#define FTL_NV_CACHE_USR_LIMIT_SECONDS 60
+#define FTL_NV_CACHE_USR_LIMIT_WINDOW (FTL_NV_CACHE_USR_LIMIT_SECONDS * 2)
+	struct user_write_limit_history {
+		uint32_t buf[FTL_NV_CACHE_USR_LIMIT_WINDOW];
+		ptrdiff_t first;
+		size_t count;
+	} user_wlim_history;
 	// to print
 	uint64_t n_submit_blks;
 	double avg_to_read;

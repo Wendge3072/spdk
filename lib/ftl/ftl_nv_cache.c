@@ -200,6 +200,7 @@ ftl_nv_cache_init(struct spdk_ftl_dev *dev)
 
 	nv_cache->throttle.interval_tsc = FTL_NV_CACHE_THROTTLE_INTERVAL_MS *
 					  (spdk_get_ticks_hz() / 1000);
+	nv_cache->throttle.group_size = 25;
 	nv_cache->comp_base_dev_bw.interval_tsc = FTL_NV_CACHE_BASE_DEV_BW_UPDATE_INTERVAL_MS *
 					  (spdk_get_ticks_hz() / 1000);
 	// nv_cache->comp_base_dev_bw.bw_limit_sec = dev->conf // TODO
@@ -1331,6 +1332,26 @@ ftl_nv_cache_throttle_update(struct ftl_nv_cache *nv_cache)
 }
 
 static void
+ftl_update_grouped_limit_stata_ring(){
+	uint32_t last_group = nv_cache->throttle.grouped_blocks_limit;
+	struct user_write_limit_history *history = &nv_cache->user_wlim_history;
+	uint32_t *ptr;
+	if(spdk_likely(history->count == FTL_NV_CACHE_USR_LIMIT_WINDOW)){
+		ptr = history->buf + history->first;
+		history->first++;
+		if(history->first == FTL_NV_CACHE_USR_LIMIT_WINDOW){
+			history->first = 0;
+		}
+	} else {
+		ptr = history->buf + history->count;
+		history->count++;
+	}
+	*ptr = last_group;
+	nv_cache->throttle.grouped_blocks_limit = 0;
+	nv_cache->throttle.fragmnt_cnt = 0;
+}
+
+static void
 ftl_nv_cache_process_throttle(struct ftl_nv_cache *nv_cache)
 {
 	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
@@ -1338,6 +1359,11 @@ ftl_nv_cache_process_throttle(struct ftl_nv_cache *nv_cache)
 	if (spdk_unlikely(!nv_cache->throttle.start_tsc)) {
 		nv_cache->throttle.start_tsc = tsc;
 	} else if (tsc - nv_cache->throttle.start_tsc >= nv_cache->throttle.interval_tsc) {
+		nv_cache->throttle.grouped_blocks_limit += nv_cache->throttle.blocks_submitted_limit;
+		nv_cache->throttle.fragmnt_cnt++;
+		if(nv_cache->throttle.fragmnt_cnt == nv_cache->throttle.group_size){
+			ftl_update_grouped_limit_stata_ring();
+		}
 		struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(nv_cache, struct spdk_ftl_dev, nv_cache);
 		if (dev->conf.switches & (1L << FTL_SWITCH_PRINT_UIOBW)) {
 			FTL_NOTICELOG(dev, "User Writing Limit: %lu, Limit Base: %.2f, Modifier: %.2f, Actual Num: %lu\n", nv_cache->throttle.blocks_submitted_limit, 
