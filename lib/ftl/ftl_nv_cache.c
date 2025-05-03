@@ -1332,7 +1332,7 @@ ftl_nv_cache_throttle_update(struct ftl_nv_cache *nv_cache)
 }
 
 static void
-ftl_update_grouped_limit_stata_ring(){
+ftl_update_grouped_limit_stata_ring(struct ftl_nv_cache *nv_cache){
 	uint32_t last_group = nv_cache->throttle.grouped_blocks_limit;
 	struct user_write_limit_history *history = &nv_cache->user_wlim_history;
 	uint32_t *ptr;
@@ -1362,7 +1362,7 @@ ftl_nv_cache_process_throttle(struct ftl_nv_cache *nv_cache)
 		nv_cache->throttle.grouped_blocks_limit += nv_cache->throttle.blocks_submitted_limit;
 		nv_cache->throttle.fragmnt_cnt++;
 		if(nv_cache->throttle.fragmnt_cnt == nv_cache->throttle.group_size){
-			ftl_update_grouped_limit_stata_ring();
+			ftl_update_grouped_limit_stata_ring(nv_cache);
 		}
 		struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(nv_cache, struct spdk_ftl_dev, nv_cache);
 		if (dev->conf.switches & (1L << FTL_SWITCH_PRINT_UIOBW)) {
