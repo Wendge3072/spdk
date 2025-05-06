@@ -1375,7 +1375,7 @@ ftl_update_grouped_limit_ma(struct ftl_nv_cache *nv_cache){
 }
 
 static void
-ftl_update_grouped_limit(struct ftl_nv_cache *nv_cache){
+ftl_update_grouped_limit(struct ftl_nv_cache *nv_cache, struct spdk_ftl_dev *dev){
 	if(dev->conf.switches & (1L << FTL_SWITCH_UPDATE_MA)){
 		ftl_update_grouped_limit_ma(nv_cache);
 	} else {
@@ -1387,7 +1387,7 @@ static void
 ftl_nv_cache_process_throttle(struct ftl_nv_cache *nv_cache)
 {
 	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
-
+	struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(nv_cache, struct spdk_ftl_dev, nv_cache);
 	if (spdk_unlikely(!nv_cache->throttle.start_tsc)) {
 		nv_cache->throttle.start_tsc = tsc;
 	} else if (tsc - nv_cache->throttle.start_tsc >= nv_cache->throttle.interval_tsc) {
@@ -1395,9 +1395,8 @@ ftl_nv_cache_process_throttle(struct ftl_nv_cache *nv_cache)
 		nv_cache->throttle.grouped_blocks_limit += blocks_interval;
 		nv_cache->throttle.fragmnt_cnt++;
 		if(nv_cache->throttle.fragmnt_cnt == nv_cache->throttle.group_size){
-			ftl_update_grouped_limit(nv_cache);
+			ftl_update_grouped_limit(nv_cache, dev);
 		}
-		struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(nv_cache, struct spdk_ftl_dev, nv_cache);
 		if (dev->conf.switches & (1L << FTL_SWITCH_PRINT_UIOBW)) {
 			FTL_NOTICELOG(dev, "User Writing Limit: %lu, New Base: %.2f, Old Base: %.2f, Modifier: %.2f, Actual Num: %lu\n", nv_cache->throttle.blocks_submitted_limit, 
 				nv_cache->throttle.blocks_submitted_new_limit_base, nv_cache->throttle.blocks_submitted_limit_base, nv_cache->throttle.blocks_submitted_limit_modifier,nv_cache->throttle.blocks_submitted);
