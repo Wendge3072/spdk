@@ -250,17 +250,31 @@ struct ftl_nv_cache {
 		uint16_t fragmnt_cnt;
 		// 要记录到history中的数据
 		uint32_t grouped_blocks_limit;
+		double   blocks_submitted_new_limit_base;
 		double   blocks_submitted_limit_base;
 		double   blocks_submitted_limit_modifier;
 	} throttle;
 
-#define FTL_NV_CACHE_USR_LIMIT_SECONDS 60
-#define FTL_NV_CACHE_USR_LIMIT_WINDOW (FTL_NV_CACHE_USR_LIMIT_SECONDS * 2)
-	struct user_write_limit_history {
-		uint32_t buf[FTL_NV_CACHE_USR_LIMIT_WINDOW];
+	struct user_write_limit_ewma {
+		uint32_t window_size;
+		double alpha;
+		double beta;
+		double denominator;
+		double numerator;
+		double quotient;
+		double limit;
+	} user_wlim_ewma;
+
+#define FTL_NV_CACHE_USER_WLIM_MA_WIN_SIZE 120
+	struct user_write_limit_ma {
+		uint32_t window_size;
+		uint32_t count;
+		uint32_t buf[FTL_NV_CACHE_USER_WLIM_MA_WIN_SIZE];
 		ptrdiff_t first;
-		size_t count;
-	} user_wlim_history;
+		uint64_t sum;
+		double avg;
+		double limit;
+	} user_wlim_ma;
 	// to print
 	uint64_t n_submit_blks;
 	double avg_to_read;

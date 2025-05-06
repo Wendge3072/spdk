@@ -207,6 +207,9 @@ ftl_nv_cache_init(struct spdk_ftl_dev *dev)
 	nv_cache->chunk_free_target = spdk_divide_round_up(nv_cache->chunk_count *
 				      dev->conf.nv_cache.chunk_free_target,
 				      100);
+	nv_cache->user_wlim_ewma.window_size = 60;
+	nv_cache->user_wlim_ewma.denominator = 0;
+	nv_cache->user_wlim_ewma.numerator = 0;
 	return 0;
 }
 
@@ -1327,28 +1330,57 @@ ftl_nv_cache_throttle_update(struct ftl_nv_cache *nv_cache)
 		double blocks_per_interval = nv_cache->compaction_sma * nv_cache->throttle.interval_tsc /
 					     FTL_BLOCK_SIZE;
 		nv_cache->throttle.blocks_submitted_limit_base = blocks_per_interval;
-		nv_cache->throttle.blocks_submitted_limit = blocks_per_interval * (1.0 + modifier);
+		nv_cache->throttle.blocks_submitted_limit = nv_cache->throttle.blocks_submitted_new_limit_base * (1.0 + modifier);
 	}
 }
 
 static void
-ftl_update_grouped_limit_stata_ring(struct ftl_nv_cache *nv_cache){
+ftl_update_grouped_limit_ewma(struct ftl_nv_cache *nv_cache){
 	uint32_t last_group = nv_cache->throttle.grouped_blocks_limit;
-	struct user_write_limit_history *history = &nv_cache->user_wlim_history;
-	uint32_t *ptr;
-	if(spdk_likely(history->count == FTL_NV_CACHE_USR_LIMIT_WINDOW)){
-		ptr = history->buf + history->first;
-		history->first++;
-		if(history->first == FTL_NV_CACHE_USR_LIMIT_WINDOW){
-			history->first = 0;
-		}
-	} else {
-		ptr = history->buf + history->count;
-		history->count++;
-	}
-	*ptr = last_group;
+	struct user_write_limit_ewma *ewma = &nv_cache->user_wlim_ewma;
+	ewma->alpha = (double)(2.0 / (double)(ewma->window_size + 1));
+	ewma->beta = 1.0 - ewma->alpha;
+	ewma->denominator = ewma->denominator * ewma->beta + 1.0;
+	ewma->numerator = ewma->numerator * ewma->beta + last_group;
+	ewma->quotient = ewma->numerator / ewma->denominator;
+	ewma->limit = ewma->quotient / nv_cache->throttle.group_size;
+	nv_cache->throttle.blocks_submitted_new_limit_base = ewma->limit;
 	nv_cache->throttle.grouped_blocks_limit = 0;
 	nv_cache->throttle.fragmnt_cnt = 0;
+}
+
+static void
+ftl_update_grouped_limit_ma(struct ftl_nv_cache *nv_cache){
+	uint32_t last_group = nv_cache->throttle.grouped_blocks_limit;
+	struct user_write_limit_ma *ma = &nv_cache->user_wlim_ma;
+	uint32_t *ptr;
+	if(spdk_likely(ma->count == ma->window_size)) {
+		ptr = ma->buf + ma->first;
+		ma->first++;
+		if(ma->first == ma->window_size){
+			ma->first = 0;
+		}
+		ma->sum -= *ptr;
+	} else {
+		ptr = ma->buf + ma->count;
+		ma->count++;
+	}
+	*ptr = last_group;
+	ma->sum += *ptr;
+	ma->avg = ma->sum / ma->count;
+	ma->limit = ma->avg / nv_cache->throttle.group_size;
+	nv_cache->throttle.blocks_submitted_new_limit_base = ma->limit;
+	nv_cache->throttle.grouped_blocks_limit = 0;
+	nv_cache->throttle.fragmnt_cnt = 0;
+}
+
+static void
+ftl_update_grouped_limit(struct ftl_nv_cache *nv_cache){
+	if(dev->conf.switches & (1L << FTL_SWITCH_UPDATE_MA)){
+		ftl_update_grouped_limit_ma(nv_cache);
+	} else {
+		ftl_update_grouped_limit_ewma(nv_cache);
+	}
 }
 
 static void
@@ -1359,15 +1391,16 @@ ftl_nv_cache_process_throttle(struct ftl_nv_cache *nv_cache)
 	if (spdk_unlikely(!nv_cache->throttle.start_tsc)) {
 		nv_cache->throttle.start_tsc = tsc;
 	} else if (tsc - nv_cache->throttle.start_tsc >= nv_cache->throttle.interval_tsc) {
-		nv_cache->throttle.grouped_blocks_limit += nv_cache->throttle.blocks_submitted_limit;
+		uint32_t blocks_interval = nv_cache->compaction_sma * nv_cache->throttle.interval_tsc / FTL_BLOCK_SIZE;
+		nv_cache->throttle.grouped_blocks_limit += blocks_interval;
 		nv_cache->throttle.fragmnt_cnt++;
 		if(nv_cache->throttle.fragmnt_cnt == nv_cache->throttle.group_size){
-			ftl_update_grouped_limit_stata_ring(nv_cache);
+			ftl_update_grouped_limit(nv_cache);
 		}
 		struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(nv_cache, struct spdk_ftl_dev, nv_cache);
 		if (dev->conf.switches & (1L << FTL_SWITCH_PRINT_UIOBW)) {
-			FTL_NOTICELOG(dev, "User Writing Limit: %lu, Limit Base: %.2f, Modifier: %.2f, Actual Num: %lu\n", nv_cache->throttle.blocks_submitted_limit, 
-				nv_cache->throttle.blocks_submitted_limit_base, nv_cache->throttle.blocks_submitted_limit_modifier,nv_cache->throttle.blocks_submitted);
+			FTL_NOTICELOG(dev, "User Writing Limit: %lu, New Base: %.2f, Old Base: %.2f, Modifier: %.2f, Actual Num: %lu\n", nv_cache->throttle.blocks_submitted_limit, 
+				nv_cache->throttle.blocks_submitted_new_limit_base, nv_cache->throttle.blocks_submitted_limit_base, nv_cache->throttle.blocks_submitted_limit_modifier,nv_cache->throttle.blocks_submitted);
 		}
 		ftl_nv_cache_throttle_update(nv_cache);
 		nv_cache->throttle.start_tsc = tsc;
