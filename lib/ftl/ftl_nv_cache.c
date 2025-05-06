@@ -1330,7 +1330,16 @@ ftl_nv_cache_throttle_update(struct ftl_nv_cache *nv_cache)
 		double blocks_per_interval = nv_cache->compaction_sma * nv_cache->throttle.interval_tsc /
 					     FTL_BLOCK_SIZE;
 		nv_cache->throttle.blocks_submitted_limit_base = blocks_per_interval;
-		nv_cache->throttle.blocks_submitted_limit = nv_cache->throttle.blocks_submitted_new_limit_base * (1.0 + modifier);
+
+		struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(nv_cache, struct spdk_ftl_dev, nv_cache);
+		double limit_base = 0.0;
+		
+		if (dev->conf.switches & (1L << FTL_SWITCH_DE_JITTER)) {
+			limit_base = nv_cache->throttle.blocks_submitted_new_limit_base;
+		} else {
+			limit_base = nv_cache->throttle.blocks_submitted_limit_base;
+		}
+		nv_cache->throttle.blocks_submitted_limit = limit_base * (1.0 + modifier);
 	}
 }
 
@@ -1398,7 +1407,7 @@ ftl_nv_cache_process_throttle(struct ftl_nv_cache *nv_cache)
 			ftl_update_grouped_limit(nv_cache, dev);
 		}
 		if (dev->conf.switches & (1L << FTL_SWITCH_PRINT_UIOBW)) {
-			FTL_NOTICELOG(dev, "User Writing Limit: %lu, New Base: %.2f, Old Base: %.2f, Modifier: %.2f, Actual Num: %lu\n", nv_cache->throttle.blocks_submitted_limit, 
+			FTL_NOTICELOG(dev, "User Writing Limit: %lu, New Base: %.2f, Old Base: %.2f, Modifier: %.5f, Actual Num: %lu\n", nv_cache->throttle.blocks_submitted_limit, 
 				nv_cache->throttle.blocks_submitted_new_limit_base, nv_cache->throttle.blocks_submitted_limit_base, nv_cache->throttle.blocks_submitted_limit_modifier,nv_cache->throttle.blocks_submitted);
 		}
 		ftl_nv_cache_throttle_update(nv_cache);
