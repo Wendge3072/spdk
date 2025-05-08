@@ -251,6 +251,7 @@ struct ftl_nv_cache {
 		// 要记录到history中的数据
 		uint32_t grouped_blocks_limit;
 		double   blocks_submitted_new_limit_base;
+		bool     new_limit_usable;
 		double   blocks_submitted_limit_base;
 		double   blocks_submitted_limit_modifier;
 	} throttle;

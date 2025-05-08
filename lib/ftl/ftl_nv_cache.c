@@ -201,6 +201,7 @@ ftl_nv_cache_init(struct spdk_ftl_dev *dev)
 	nv_cache->throttle.interval_tsc = FTL_NV_CACHE_THROTTLE_INTERVAL_MS *
 					  (spdk_get_ticks_hz() / 1000);
 	nv_cache->throttle.group_size = 25;
+	nv_cache->throttle.new_limit_usable = false;
 	nv_cache->comp_base_dev_bw.interval_tsc = FTL_NV_CACHE_BASE_DEV_BW_UPDATE_INTERVAL_MS *
 					  (spdk_get_ticks_hz() / 1000);
 	// nv_cache->comp_base_dev_bw.bw_limit_sec = dev->conf // TODO
@@ -208,8 +209,7 @@ ftl_nv_cache_init(struct spdk_ftl_dev *dev)
 				      dev->conf.nv_cache.chunk_free_target,
 				      100);
 	nv_cache->user_wlim_ewma.window_size = 60;
-	nv_cache->user_wlim_ewma.denominator = 0;
-	nv_cache->user_wlim_ewma.numerator = 0;
+	nv_cache->user_wlim_ma.window_size = 60;
 	return 0;
 }
 
@@ -1308,9 +1308,8 @@ ftl_nv_cache_set_addr(struct spdk_ftl_dev *dev, uint64_t lba, ftl_addr addr)
 	ftl_bitmap_set(dev->valid_map, addr);
 }
 
-static void
-ftl_nv_cache_throttle_update(struct ftl_nv_cache *nv_cache)
-{
+static double
+ftl_nv_cache_caculate_modifier(struct ftl_nv_cache *nv_cache){
 	double err;
 	double modifier;
 
@@ -1322,6 +1321,13 @@ ftl_nv_cache_throttle_update(struct ftl_nv_cache *nv_cache)
 	} else if (modifier > FTL_NV_CACHE_THROTTLE_MODIFIER_MAX) {
 		modifier = FTL_NV_CACHE_THROTTLE_MODIFIER_MAX;
 	}
+	return modifier;
+}
+
+static void
+ftl_nv_cache_throttle_update(struct ftl_nv_cache *nv_cache)
+{
+	double modifier = ftl_nv_cache_caculate_modifier(nv_cache);
 
 	if (spdk_unlikely(nv_cache->compaction_sma == 0 || nv_cache->compaction_active_count == 0)) {
 		nv_cache->throttle.blocks_submitted_limit_base = UINT64_MAX;
@@ -1332,14 +1338,18 @@ ftl_nv_cache_throttle_update(struct ftl_nv_cache *nv_cache)
 		nv_cache->throttle.blocks_submitted_limit_base = blocks_per_interval;
 
 		struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(nv_cache, struct spdk_ftl_dev, nv_cache);
-		double limit_base = 0.0;
+		double blocks_submitted_limit = 0.0;
 		
-		if (dev->conf.switches & (1L << FTL_SWITCH_DE_JITTER)) {
-			limit_base = nv_cache->throttle.blocks_submitted_new_limit_base;
+		if (dev->conf.switches & (1L << FTL_SWITCH_DE_JITTER) && nv_cache->throttle.new_limit_usable) {
+			blocks_submitted_limit = nv_cache->throttle.blocks_submitted_new_limit_base;
 		} else {
-			limit_base = nv_cache->throttle.blocks_submitted_limit_base;
+			blocks_submitted_limit = nv_cache->throttle.blocks_submitted_limit_base;
 		}
-		nv_cache->throttle.blocks_submitted_limit = limit_base * (1.0 + modifier);
+
+		if (!dev->conf.switches & (1L << FTL_SWITCH_DIRECT_THRESHOLD)){
+			blocks_submitted_limit *= (double)(1.0 + modifier);
+		}
+		nv_cache->throttle.blocks_submitted_limit = blocks_submitted_limit;
 	}
 }
 
@@ -1354,6 +1364,9 @@ ftl_update_grouped_limit_ewma(struct ftl_nv_cache *nv_cache){
 	ewma->quotient = ewma->numerator / ewma->denominator;
 	ewma->limit = ewma->quotient / nv_cache->throttle.group_size;
 	nv_cache->throttle.blocks_submitted_new_limit_base = ewma->limit;
+	if (spdk_unlikely(!nv_cache->throttle.new_limit_usable)) {
+		nv_cache->throttle.new_limit_usable = true;
+	}
 	nv_cache->throttle.grouped_blocks_limit = 0;
 	nv_cache->throttle.fragmnt_cnt = 0;
 }
@@ -1379,6 +1392,9 @@ ftl_update_grouped_limit_ma(struct ftl_nv_cache *nv_cache){
 	ma->avg = ma->sum / ma->count;
 	ma->limit = ma->avg / nv_cache->throttle.group_size;
 	nv_cache->throttle.blocks_submitted_new_limit_base = ma->limit;
+	if (spdk_unlikely(!nv_cache->throttle.new_limit_usable)) {
+		nv_cache->throttle.new_limit_usable = true;
+	}
 	nv_cache->throttle.grouped_blocks_limit = 0;
 	nv_cache->throttle.fragmnt_cnt = 0;
 }
@@ -1400,10 +1416,16 @@ ftl_nv_cache_process_throttle(struct ftl_nv_cache *nv_cache)
 	if (spdk_unlikely(!nv_cache->throttle.start_tsc)) {
 		nv_cache->throttle.start_tsc = tsc;
 	} else if (tsc - nv_cache->throttle.start_tsc >= nv_cache->throttle.interval_tsc) {
-		uint32_t blocks_interval = nv_cache->compaction_sma * nv_cache->throttle.interval_tsc / FTL_BLOCK_SIZE;
-		nv_cache->throttle.grouped_blocks_limit += blocks_interval;
+		double blocks_interval = nv_cache->compaction_sma * nv_cache->throttle.interval_tsc / FTL_BLOCK_SIZE;
+		
+		if (dev->conf.switches & (1L << FTL_SWITCH_DIRECT_THRESHOLD)){
+			double modifier = ftl_nv_cache_caculate_modifier(nv_cache);
+			blocks_interval *= (double)(1.0 + modifier);
+		}
+		nv_cache->throttle.grouped_blocks_limit += (uint32_t)blocks_interval;
 		nv_cache->throttle.fragmnt_cnt++;
-		if(nv_cache->throttle.fragmnt_cnt == nv_cache->throttle.group_size){
+		
+		if (nv_cache->throttle.fragmnt_cnt == nv_cache->throttle.group_size){
 			ftl_update_grouped_limit(nv_cache, dev);
 		}
 		if (dev->conf.switches & (1L << FTL_SWITCH_PRINT_UIOBW)) {
