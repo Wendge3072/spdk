@@ -846,6 +846,13 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 	if (offset) {
 		chunk->md->read_pointer += offset;
 		chunk_compaction_advance(chunk, offset);
+		if(chunk->log && is_chunk_compacted(chunk)){
+			FTL_NOTICELOG(dev, "Compactor %zu skend ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
+			chunk->log = false;
+			if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
+				dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
+			}
+		}
 		chunk->md->blocks_comp_skip += offset;
 		to_read -= offset;
 		if (!to_read) { // 没有可以读取的block，该chunk剩余部分无需compaction
@@ -933,10 +940,12 @@ compaction_process_ftl_done(struct ftl_rq *rq)
 
 		chunk_compaction_advance(chunk, 1);
 		if (chunk->log) {
-			if (i == rq->num_blocks || is_chunk_compacted(chunk)){
+			struct ftl_rq_entry *nentry = entry + 1;
+			if (i == rq->num_blocks - 1 || entry->owner.priv != nentry->owner.priv) {
 				FTL_NOTICELOG(dev, "Compactor %zu write ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
 			}
 			if(is_chunk_compacted(chunk)){
+				FTL_NOTICELOG(dev, "Compactor %zu wrend ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
 				chunk->log = false;
 				if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
 					dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
@@ -988,6 +997,13 @@ compaction_process_finish_read(struct ftl_nv_cache_compactor *compactor)
 			cache_addr++;
 			rd->iter.idx++;
 			chunk_compaction_advance(chunk, 1);
+			if(chunk->log && is_chunk_compacted(chunk)){
+				FTL_NOTICELOG(dev, "Compactor %zu skend ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
+				chunk->log = false;
+				if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
+					dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
+				}
+			}
 			chunk->md->blocks_comp_skip++;
 			continue;
 		}
@@ -1013,6 +1029,13 @@ compaction_process_finish_read(struct ftl_nv_cache_compactor *compactor)
 		} else {
 			/* This address already invalidated, just omit this block */
 			chunk_compaction_advance(chunk, 1);
+			if(chunk->log && is_chunk_compacted(chunk)){
+				FTL_NOTICELOG(dev, "Compactor %zu skend ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
+				chunk->log = false;
+				if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
+					dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
+				}
+			}
 			chunk->md->blocks_comp_skip++;
 			ftl_l2p_unpin(dev, md->nv_cache.lba, 1);
 		}
