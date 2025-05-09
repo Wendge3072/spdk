@@ -129,11 +129,14 @@ struct ftl_nv_cache_chunk {
 
 	uint64_t read_blocks_sum;
 
+	bool log;
+
 	/* For writing metadata */
 	struct ftl_md_io_entry_ctx md_persist_entry_ctx;
 };
 
 struct ftl_nv_cache_compactor {
+	uint64_t id;
 	struct ftl_nv_cache *nv_cache;
 	struct ftl_rq *wr;
 	struct ftl_rq *rd;

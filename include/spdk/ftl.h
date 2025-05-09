@@ -77,6 +77,7 @@ typedef void (*spdk_ftl_stats_fn)(struct ftl_stats *stats, void *cb_arg);
 #define FTL_SWITCH_UPDATE_MA 2
 #define FTL_SWITCH_DE_JITTER 3
 #define FTL_SWITCH_DIRECT_THRESHOLD 4
+#define FTL_SWITCH_COMP_ORDER 5
 
 /*
  * FTL configuration.

@@ -159,7 +159,7 @@ ftl_nv_cache_init(struct spdk_ftl_dev *dev)
 	TAILQ_INIT(&nv_cache->compactor_list);
 	for (i = 0; i < FTL_NV_CACHE_NUM_COMPACTORS; i++) {
 		compactor = compactor_alloc(dev);
-
+		compactor->id = i;
 		if (!compactor) {
 			FTL_ERRLOG(dev, "Cannot allocate compaction process\n");
 			return -1;
@@ -601,7 +601,11 @@ compaction_process_pin_lba_cb(struct spdk_ftl_dev *dev, int status, struct ftl_l
 			spdk_thread_send_msg(spdk_get_thread(), _compaction_process_pin_lba, comp);
 			return;
 		}
-
+		struct ftl_nv_cache_chunk *chunk = comp->rd->owner.priv;
+		if (chunk->log) {
+			FTL_NOTICELOG(dev, "Compactor %zu plba ended, chunkid %zu, in poller %zu\n", comp->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
+		}
+		
 		compaction_process_finish_read(comp);
 	}
 }
@@ -667,7 +671,11 @@ compaction_process_read_cb(struct spdk_bdev_io *bdev_io,
 {
 	struct ftl_nv_cache_compactor *compactor = cb_arg;
 	struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(compactor->nv_cache, struct spdk_ftl_dev, nv_cache);
-
+	struct ftl_nv_cache *nv_cache = compactor->nv_cache;
+	struct ftl_nv_cache_chunk *chunk = compactor->rd->owner.priv;
+	if (chunk->log) {
+		FTL_NOTICELOG(dev, "Compactor %zu read ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
+	}
 	ftl_stats_bdev_io_completed(dev, FTL_STATS_TYPE_CMP, bdev_io);
 
 	spdk_bdev_free_io(bdev_io);
@@ -676,6 +684,9 @@ compaction_process_read_cb(struct spdk_bdev_io *bdev_io,
 		/* retry */
 		spdk_thread_send_msg(spdk_get_thread(), compaction_retry_read, compactor);
 		return;
+	}
+	if (chunk->log) {
+		FTL_NOTICELOG(dev, "Compactor %zu plba start, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
 	}
 	compaction_process_pin_lba(compactor);
 }
@@ -810,6 +821,10 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 	}
 	if(chunk->md->read_pointer == 0){
 		FTL_NOTICELOG(dev, "Compaction start id: %zu, poller ite: %zu\n", get_chunk_idx(chunk), dev->poller_ite_cnt);
+		if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)) {
+			FTL_NOTICELOG(dev, "Compactor %zu plba ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
+			chunk->log = true;
+		}
 	}
 	chunk->comp_start_num++;
 	chunk->compaction_start_tsc = spdk_thread_get_last_tsc(spdk_get_thread());
@@ -849,6 +864,9 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 	to_read = spdk_min(to_read, compactor->rd->num_blocks);
 
 	/* Read data and metadata from NV cache */
+	if (chunk->log) {
+		FTL_NOTICELOG(dev, "Compactor %zu plba ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
+	}
 	rc = compaction_submit_read(compactor, addr, to_read);
 	chunk->read_blocks_sum += to_read;
 	chunk->comp_read_num++;
@@ -914,6 +932,13 @@ compaction_process_ftl_done(struct ftl_rq *rq)
 		ftl_l2p_unpin(dev, entry->lba, 1);
 
 		chunk_compaction_advance(chunk, 1);
+		if (chunk->log) {
+			FTL_NOTICELOG(dev, "Compactor %zu write ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
+			if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
+				dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
+			}
+			chunk->log = false;
+		}
 		addr = ftl_band_next_addr(band, addr, 1);
 	}
 
@@ -997,6 +1022,9 @@ compaction_process_finish_read(struct ftl_nv_cache_compactor *compactor)
 		/*
 		 * Request contains data to be placed on FTL, compact it
 		 */
+		if (chunk->log) {
+			FTL_NOTICELOG(dev, "Compactor %zu write queue, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
+		}
 		ftl_writer_queue_rq(&dev->writer_user, wr);
 	} else {
 		if (is_compaction_required(compactor->nv_cache)) {
