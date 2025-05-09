@@ -846,7 +846,7 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 	if (offset) {
 		chunk->md->read_pointer += offset;
 		chunk_compaction_advance(chunk, offset);
-		if(chunk->log && is_chunk_compacted(chunk)){
+		if(chunk->log && chunk->md->blocks_compacted == 0){
 			FTL_NOTICELOG(dev, "Compactor %zu skend ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
 			chunk->log = false;
 			if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
@@ -944,7 +944,7 @@ compaction_process_ftl_done(struct ftl_rq *rq)
 			if (i == rq->num_blocks - 1 || entry->owner.priv != nentry->owner.priv) {
 				FTL_NOTICELOG(dev, "Compactor %zu write ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
 			}
-			if(is_chunk_compacted(chunk)){
+			if(chunk->md->blocks_compacted == 0){
 				FTL_NOTICELOG(dev, "Compactor %zu wrend ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
 				chunk->log = false;
 				if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
@@ -997,7 +997,7 @@ compaction_process_finish_read(struct ftl_nv_cache_compactor *compactor)
 			cache_addr++;
 			rd->iter.idx++;
 			chunk_compaction_advance(chunk, 1);
-			if(chunk->log && is_chunk_compacted(chunk)){
+			if(chunk->log && chunk->md->blocks_compacted == 0){
 				FTL_NOTICELOG(dev, "Compactor %zu skend ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
 				chunk->log = false;
 				if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
@@ -1029,7 +1029,7 @@ compaction_process_finish_read(struct ftl_nv_cache_compactor *compactor)
 		} else {
 			/* This address already invalidated, just omit this block */
 			chunk_compaction_advance(chunk, 1);
-			if(chunk->log && is_chunk_compacted(chunk)){
+			if(chunk->log && chunk->md->blocks_compacted == 0){
 				FTL_NOTICELOG(dev, "Compactor %zu skend ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
 				chunk->log = false;
 				if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
