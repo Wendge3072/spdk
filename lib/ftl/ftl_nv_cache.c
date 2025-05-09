@@ -822,7 +822,7 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 	if(chunk->md->read_pointer == 0){
 		FTL_NOTICELOG(dev, "Compaction start id: %zu, poller ite: %zu\n", get_chunk_idx(chunk), dev->poller_ite_cnt);
 		if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)) {
-			FTL_NOTICELOG(dev, "Compactor %zu plba ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
+			FTL_NOTICELOG(dev, "Compactor %zu prep ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
 			chunk->log = true;
 		}
 	}
@@ -933,7 +933,9 @@ compaction_process_ftl_done(struct ftl_rq *rq)
 
 		chunk_compaction_advance(chunk, 1);
 		if (chunk->log) {
-			FTL_NOTICELOG(dev, "Compactor %zu write ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
+			if (i == rq->num_blocks || is_chunk_compacted(chunk)){
+				FTL_NOTICELOG(dev, "Compactor %zu write ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
+			}
 			if(is_chunk_compacted(chunk)){
 				chunk->log = false;
 				if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
