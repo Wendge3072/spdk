@@ -865,7 +865,7 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 
 	/* Read data and metadata from NV cache */
 	if (chunk->log) {
-		FTL_NOTICELOG(dev, "Compactor %zu plba ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
+		FTL_NOTICELOG(dev, "Compactor %zu read start, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
 	}
 	rc = compaction_submit_read(compactor, addr, to_read);
 	chunk->read_blocks_sum += to_read;
@@ -934,10 +934,12 @@ compaction_process_ftl_done(struct ftl_rq *rq)
 		chunk_compaction_advance(chunk, 1);
 		if (chunk->log) {
 			FTL_NOTICELOG(dev, "Compactor %zu write ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
-			if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
-				dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
+			if(is_chunk_compacted(chunk)){
+				chunk->log = false;
+				if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
+					dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
+				}
 			}
-			chunk->log = false;
 		}
 		addr = ftl_band_next_addr(band, addr, 1);
 	}
