@@ -123,6 +123,10 @@ struct ftl_nv_cache_chunk {
 	/* Compaction duration */
 	uint64_t compaction_length_tsc;
 
+	uint64_t compaction_start;
+
+	uint64_t compaction_length;
+
 	uint64_t comp_start_num;
 
 	uint64_t comp_read_num;

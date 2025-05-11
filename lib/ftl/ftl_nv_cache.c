@@ -514,7 +514,7 @@ compaction_stats_update(struct ftl_nv_cache_chunk *chunk)
 	}
 
 	// *ptr = (double)chunk->md->blocks_compacted * FTL_BLOCK_SIZE / chunk->compaction_length_tsc;
-	*ptr = (double)chunk->md->blocks_compacted_period * FTL_BLOCK_SIZE / chunk->compaction_length_tsc;
+	*ptr = (double)chunk->md->blocks_compacted_period * FTL_BLOCK_SIZE / chunk->compaction_length;
 	struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(chunk->nv_cache, struct spdk_ftl_dev, nv_cache);
 	double avg_to_read = (double)chunk->read_blocks_sum / (double)chunk->comp_read_num;
 	nv_cache->avg_to_read = avg_to_read;
@@ -527,6 +527,8 @@ compaction_stats_update(struct ftl_nv_cache_chunk *chunk)
 	chunk->comp_read_num = 0;
 	chunk->read_blocks_sum = 0;
 	chunk->compaction_length_tsc = 0;
+	chunk->compaction_start = 0
+	chunk->compaction_length = 0;
 	chunk->square_err = 0;
 
 	compaction_bw->sum += *ptr;
@@ -560,6 +562,12 @@ chunk_compaction_advance(struct ftl_nv_cache_chunk *chunk, uint64_t num_blocks)
 	/* Remove chunk from compacted list */
 	TAILQ_REMOVE(&nv_cache->chunk_comp_list, chunk, entry);
 	nv_cache->chunk_comp_count--;
+
+	/* Ensure that the compaction length is the time from the tick of the chunk entering the chunk_comp_list
+	 * to the tick of the chunk being removed from the chunk_comp_list.
+	 * */
+	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
+	chunk->compaction_length = tsc - chunk->compaction_start;
 
 	compaction_stats_update(chunk);
 
@@ -738,6 +746,8 @@ get_chunk_for_compaction(struct ftl_nv_cache *nv_cache)
 	if (spdk_likely(chunk)) {
 		assert(chunk->md->write_pointer != 0);
 		TAILQ_INSERT_HEAD(&nv_cache->chunk_comp_list, chunk, entry);
+		uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
+		chunk->compaction_start = tsc;
 		nv_cache->chunk_comp_count++;
 	}
 
