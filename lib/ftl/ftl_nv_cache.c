@@ -513,7 +513,8 @@ compaction_stats_update(struct ftl_nv_cache_chunk *chunk)
 		compaction_bw->count++;
 	}
 
-	*ptr = (double)chunk->md->blocks_compacted * FTL_BLOCK_SIZE / chunk->compaction_length_tsc;
+	// *ptr = (double)chunk->md->blocks_compacted * FTL_BLOCK_SIZE / chunk->compaction_length_tsc;
+	*ptr = (double)chunk->md->blocks_compacted_period * FTL_BLOCK_SIZE / chunk->compaction_length_tsc;
 	struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(chunk->nv_cache, struct spdk_ftl_dev, nv_cache);
 	double avg_to_read = (double)chunk->read_blocks_sum / (double)chunk->comp_read_num;
 	nv_cache->avg_to_read = avg_to_read;
@@ -542,6 +543,16 @@ chunk_compaction_advance(struct ftl_nv_cache_chunk *chunk, uint64_t num_blocks)
 	chunk->compaction_start_tsc = tsc;
 
 	chunk->md->blocks_compacted += num_blocks;
+	
+	/* 
+	 * Add num_blocks to chunk->blocks_compacted_period for every chunk being compacted,
+	 * and use this value to replace the blocks_compacted when calculating the sma of compaction,
+	 * so that we can obtain the exact average compaction bandwidth of all chunks being compacted.
+	 */
+	TAILQ_FOREACH(chunk, &nv_cache->chunk_comp_list, entry) {
+		chunk->md->blocks_compacted_period += num_blocks;
+	}
+
 	if (!is_chunk_compacted(chunk)) {
 		return;
 	}

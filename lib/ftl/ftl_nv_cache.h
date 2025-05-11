@@ -80,6 +80,8 @@ struct ftl_nv_cache_chunk_md {
 	/* Number of compacted (both valid and invalid) blocks */
 	uint32_t blocks_compacted;
 
+	uint32_t blocks_compacted_period;
+
 	uint32_t blocks_comp_skip;
 
 	/* Chunk state */
@@ -89,7 +91,7 @@ struct ftl_nv_cache_chunk_md {
 	uint32_t p2l_map_checksum;
 
 	/* Reserved */
-	uint8_t reserved[4048];
+	uint8_t reserved[4044];
 } __attribute__((packed));
 
 #define FTL_NV_CACHE_CHUNK_MD_SIZE sizeof(struct ftl_nv_cache_chunk_md)
