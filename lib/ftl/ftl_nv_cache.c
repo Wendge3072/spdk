@@ -566,7 +566,7 @@ chunk_compaction_advance(struct ftl_nv_cache_chunk *chunk, uint64_t num_blocks)
 	/* Ensure that the compaction length is the time from the tick of the chunk entering the chunk_comp_list
 	 * to the tick of the chunk being removed from the chunk_comp_list.
 	 * */
-	uint64_t tsc = spdk_thread_get_last_tsc(spdk_get_thread());
+	tsc = spdk_thread_get_last_tsc(spdk_get_thread());
 	chunk->compaction_length = tsc - chunk->compaction_start;
 
 	compaction_stats_update(chunk);
