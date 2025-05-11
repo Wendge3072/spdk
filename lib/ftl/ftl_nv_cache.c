@@ -527,7 +527,7 @@ compaction_stats_update(struct ftl_nv_cache_chunk *chunk)
 	chunk->comp_read_num = 0;
 	chunk->read_blocks_sum = 0;
 	chunk->compaction_length_tsc = 0;
-	chunk->compaction_start = 0
+	chunk->compaction_start = 0;
 	chunk->compaction_length = 0;
 	chunk->square_err = 0;
 
