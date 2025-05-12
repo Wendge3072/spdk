@@ -1423,7 +1423,7 @@ ftl_nv_cache_throttle_update(struct ftl_nv_cache *nv_cache)
 			blocks_submitted_limit = nv_cache->throttle.blocks_submitted_limit_base;
 		}
 
-		if (!dev->conf.switches & (1L << FTL_SWITCH_DIRECT_THRESHOLD)){
+		if (!(dev->conf.switches & (1L << FTL_SWITCH_DIRECT_THRESHOLD))){
 			blocks_submitted_limit *= (double)(1.0 + modifier);
 		}
 		nv_cache->throttle.blocks_submitted_limit = blocks_submitted_limit;
