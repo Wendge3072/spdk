@@ -24,7 +24,9 @@
         "print": "c",
         "xor.h": "c",
         "complex": "c",
-        "queue": "c"
+        "queue": "c",
+        "__tree": "c",
+        "cmath": "c"
     },
     "cmake.ignoreCMakeListsMissing": true,
     "commentTranslate.hover.enabled": true

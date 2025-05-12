@@ -873,9 +873,9 @@ compaction_process(struct ftl_nv_cache_compactor *compactor)
 		if(chunk->log && chunk->md->blocks_compacted == 0){
 			FTL_NOTICELOG(dev, "Compactor %zu skend ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
 			chunk->log = false;
-			if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
-				dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
-			}
+			// if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
+			// 	dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
+			// }
 		}
 		chunk->md->blocks_comp_skip += offset;
 		to_read -= offset;
@@ -971,9 +971,9 @@ compaction_process_ftl_done(struct ftl_rq *rq)
 			if(chunk->md->blocks_compacted == 0){
 				FTL_NOTICELOG(dev, "Compactor %zu wrend ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
 				chunk->log = false;
-				if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
-					dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
-				}
+				// if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
+				// 	dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
+				// }
 			}
 		}
 		addr = ftl_band_next_addr(band, addr, 1);
@@ -1024,9 +1024,9 @@ compaction_process_finish_read(struct ftl_nv_cache_compactor *compactor)
 			if(chunk->log && chunk->md->blocks_compacted == 0){
 				FTL_NOTICELOG(dev, "Compactor %zu skend ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
 				chunk->log = false;
-				if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
-					dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
-				}
+				// if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
+				// 	dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
+				// }
 			}
 			chunk->md->blocks_comp_skip++;
 			continue;
@@ -1056,9 +1056,9 @@ compaction_process_finish_read(struct ftl_nv_cache_compactor *compactor)
 			if(chunk->log && chunk->md->blocks_compacted == 0){
 				FTL_NOTICELOG(dev, "Compactor %zu skend ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
 				chunk->log = false;
-				if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
-					dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
-				}
+				// if (dev->conf.switches & (1 << FTL_SWITCH_COMP_ORDER)){
+				// 	dev->conf.switches ^= (1 << FTL_SWITCH_COMP_ORDER);
+				// }
 			}
 			chunk->md->blocks_comp_skip++;
 			ftl_l2p_unpin(dev, md->nv_cache.lba, 1);
