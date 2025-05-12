@@ -551,8 +551,9 @@ chunk_compaction_advance(struct ftl_nv_cache_chunk *chunk, uint64_t num_blocks)
 	 * and use this value to replace the blocks_compacted when calculating the sma of compaction,
 	 * so that we can obtain the exact average compaction bandwidth of all chunks being compacted.
 	 */
-	TAILQ_FOREACH(chunk, &nv_cache->chunk_comp_list, entry) {
-		chunk->md->blocks_compacted_period += num_blocks;
+	struct ftl_nv_cache_chunk *chunk_iter;
+	TAILQ_FOREACH(chunk_iter, &nv_cache->chunk_comp_list, entry) {
+		chunk_iter->md->blocks_compacted_period += num_blocks;
 	}
 
 	if (!is_chunk_compacted(chunk)) {
