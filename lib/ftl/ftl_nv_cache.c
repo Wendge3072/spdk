@@ -693,7 +693,6 @@ compaction_process_read_cb(struct spdk_bdev_io *bdev_io,
 {
 	struct ftl_nv_cache_compactor *compactor = cb_arg;
 	struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(compactor->nv_cache, struct spdk_ftl_dev, nv_cache);
-	struct ftl_nv_cache *nv_cache = compactor->nv_cache;
 	struct ftl_nv_cache_chunk *chunk = compactor->rd->owner.priv;
 	if (chunk->log) {
 		FTL_NOTICELOG(dev, "Compactor %zu read ended, chunkid %zu, in poller %zu\n", compactor->id, get_chunk_idx(chunk), dev->poller_ite_cnt);
