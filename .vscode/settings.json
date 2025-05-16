@@ -26,7 +26,8 @@
         "complex": "c",
         "queue": "c",
         "__tree": "c",
-        "cmath": "c"
+        "cmath": "c",
+        "typeinfo": "c"
     },
     "cmake.ignoreCMakeListsMissing": true,
     "commentTranslate.hover.enabled": true

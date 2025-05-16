@@ -764,9 +764,9 @@ void ftl_print_per_sec(struct spdk_ftl_dev *dev){
 		dev->compaction_bw = 0;
 		dev->gc_bw = 0;
 	}
-	if(tsc - dev->last_print_tsc > spdk_get_ticks_hz()/5){
-		FTL_NOTICELOG(dev, "Free Compactor Num: %zu\n", dev->nv_cache.compaction_active_count);
-	}
+	// if(tsc - dev->last_print_tsc > spdk_get_ticks_hz()/5){
+	// 	FTL_NOTICELOG(dev, "Free Compactor Num: %zu\n", dev->nv_cache.compaction_active_count);
+	// }
 }
 
 struct ftl_band *
