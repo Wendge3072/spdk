@@ -539,7 +539,7 @@ compaction_stats_update(struct ftl_nv_cache_chunk *chunk)
 // 		nv_cache->compaction_sma = *ptr;
 // 	else
 // 		nv_cache->compaction_sma = 0.0625 * (*ptr) + 0.9375 * nv_cache->compaction_sma;
-// }
+}
 
 static void
 chunk_compaction_advance(struct ftl_nv_cache_chunk *chunk, uint64_t num_blocks)
