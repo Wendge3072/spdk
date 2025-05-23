@@ -1499,7 +1499,20 @@ ftl_nv_cache_process_throttle(struct ftl_nv_cache *nv_cache)
 		nv_cache->throttle.start_tsc = tsc;
 	} else if (tsc - nv_cache->throttle.start_tsc >= nv_cache->throttle.interval_tsc) {
 		double blocks_interval = nv_cache->compaction_sma * nv_cache->throttle.interval_tsc / FTL_BLOCK_SIZE;
-		
+		double gap = nv_cache->throttle.blocks_submitted_new_limit_base - nv_cache->throttle.blocks_submitted_limit_base;
+		if (gap > 3072 || gap < -3072){
+			nv_cache->user_wlim_ewma.window_size = 60;
+		}else if (gap > 512 || gap < -512){
+			nv_cache->user_wlim_ewma.window_size = 3;
+		}else if (gap > 384 || gap < -384){
+			nv_cache->user_wlim_ewma.window_size = 6;
+		}else if (gap > 256 || gap < -256){
+			nv_cache->user_wlim_ewma.window_size = 9;
+		}else if (gap > 192 || gap < -192){
+			nv_cache->user_wlim_ewma.window_size = 47;
+		}else {
+			nv_cache->user_wlim_ewma.window_size = 60;
+		}
 		if (dev->conf.switches & (1L << FTL_SWITCH_DIRECT_THRESHOLD)){
 			double modifier = ftl_nv_cache_caculate_modifier(nv_cache);
 			blocks_interval *= (double)(1.0 + modifier);
