@@ -513,8 +513,8 @@ compaction_stats_update(struct ftl_nv_cache_chunk *chunk)
 		compaction_bw->count++;
 	}
 
-	// *ptr = (double)chunk->md->blocks_compacted * FTL_BLOCK_SIZE / chunk->compaction_length_tsc;
-	*ptr = (double)chunk->md->blocks_compacted_period * FTL_BLOCK_SIZE / chunk->compaction_length;
+	*ptr = (double)chunk->md->blocks_compacted * FTL_BLOCK_SIZE / chunk->compaction_length_tsc;
+	// *ptr = (double)chunk->md->blocks_compacted_period * FTL_BLOCK_SIZE / chunk->compaction_length;
 	double old_sma = (double)chunk->md->blocks_compacted * FTL_BLOCK_SIZE / chunk->compaction_length_tsc;
 	struct spdk_ftl_dev *dev = SPDK_CONTAINEROF(chunk->nv_cache, struct spdk_ftl_dev, nv_cache);
 	double avg_to_read = (double)chunk->read_blocks_sum / (double)chunk->comp_read_num;

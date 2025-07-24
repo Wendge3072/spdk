@@ -224,6 +224,7 @@ struct ftl_nv_cache {
 	double compaction_sma;
 
 #define FTL_NV_CACHE_COMPACTION_SMA_N (FTL_NV_CACHE_NUM_COMPACTORS * 2)
+// #define FTL_NV_CACHE_COMPACTION_SMA_N 
 	/* Circular buffer holding values for calculating compaction SMA */
 	struct compaction_bw_stats {
 		double buf[FTL_NV_CACHE_COMPACTION_SMA_N];
