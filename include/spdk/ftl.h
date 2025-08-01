@@ -78,7 +78,7 @@ typedef void (*spdk_ftl_stats_fn)(struct ftl_stats *stats, void *cb_arg);
 #define FTL_SWITCH_DE_JITTER		3  // 使用去抖动方案（默认EWMA）平滑波动
 #define FTL_SWITCH_DIRECT_THRESHOLD 4  // 对总阈值平滑
 #define FTL_SWITCH_COMP_ORDER 		5  // 输出Compaction任务中read、pin、write的顺序
-
+#define FTL_SWITCH_HALT_RELOC_COMP  6  // 停止Reloc、Compaction
 /*
  * FTL configuration.
  *
