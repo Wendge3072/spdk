@@ -314,8 +314,14 @@ ftl_needs_reloc(struct spdk_ftl_dev *dev, bool *background_gc)
 	double free_band_ratio = (double) dev->num_free / dev->num_bands;
 	double comp_bw = dev->nv_cache.comp_base_dev_bw.avg_bw;
 	double user_bw = dev->nv_cache.comp_base_dev_bw.user_avg_bw;
-	bool comp_idle = ftl_get_bggc_threshold(dev) - comp_bw > 0.1L;
-	bool user_idle = ftl_get_bggc_threshold(dev) - user_bw > 0.1L;
+	if (comp_bw < 0.0L) {
+		comp_bw = 0.0L;
+	}
+	if (user_bw < 0.0L) {
+		user_bw = 0.0L;
+	}
+	bool comp_idle = ftl_get_bggc_threshold(dev) > comp_bw;
+	bool user_idle = ftl_get_bggc_threshold(dev) > user_bw;
 	bool flag = comp_idle && user_idle;
 	if ((invalid_ratio > 0.015L && dev->reloc->Max_invalidity > 0.1L && flag) || dev->num_free <= limit) {
 		if (invalid_ratio > 0.015L && dev->reloc->Max_invalidity > 0.1L && flag) {
